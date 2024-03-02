@@ -7,26 +7,40 @@ load_dotenv(PROJECT_DIR / '.envs' / 'dev' / 'postgres.env')
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+DEBUG = bool(os.getenv("DEBUG"))
+
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
+MIDDLEWARE += [
+    'silk.middleware.SilkyMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+]
+
+INSTALLED_APPS += (
+    'silk',
+    "debug_toolbar",
+    'django_extensions',
+)
+
 # DATABASE
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': os.getenv('POSTGRES_DB'),
-#         'USER': os.getenv('POSTGRES_USER'),
-#         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-#         'HOST': os.getenv('POSTGRES_HOST'),
-#         'PORT': os.getenv('POSTGRES_PORT'),
-#     }
-# }
-# DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': PROJECT_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_HOST'),
+        'PORT': os.getenv('POSTGRES_PORT'),
     }
 }
+DATABASES["default"]["ATOMIC_REQUESTS"] = True
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': PROJECT_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # STATIC
@@ -160,3 +174,9 @@ LOGGING = {
         },
     },
 }
+
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    # ...
+]

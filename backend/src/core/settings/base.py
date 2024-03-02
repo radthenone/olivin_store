@@ -1,7 +1,9 @@
-from src.core.config import BASE_DIR, APP_DIR, PROJECT_DIR
+from src.core.config import BASE_DIR, SRC_DIR, PROJECT_DIR
 import os
+import sys
 
-INSTALLED_APPS = [
+
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -9,6 +11,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
+
+THIRD_PARTY_APPS = [
+]
+
+CREATE_APPS = [
+    "src.users",
+]
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CREATE_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -1,0 +1,59 @@
+version: "3.11"
+services:
+  postgres:
+    container_name: postgres-olivin
+    image: postgres:14.6
+    hostname: postgres
+    ports:
+      - "5432:5432"
+      - "5433:5432"
+    env_file:
+      - ./.envs/dev/postgres.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: on-failure
+    networks:
+      - my_network
+
+  redis:
+    image: redis
+    container_name: redis-olivin
+    build:
+      context: ./backend
+      dockerfile: ./docker/redis/Dockerfile
+    env_file:
+      - ./.envs/dev/redis.env
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - my_network
+
+  django: &django
+    container_name: django-olivin
+    build:
+      context: ./backend
+      dockerfile: ./docker/ninja/Dockerfile
+    privileged : true
+    command:
+      - /django.sh
+    env_file:
+      - ./.envs/dev/django.env
+      - ./.envs/dev/postgres.env
+    volumes:
+      - ./backend/src:/src:z
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - my_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  my_network:

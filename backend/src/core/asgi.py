@@ -16,10 +16,9 @@ load_dotenv(PROJECT_DIR / '.envs' / '.env')
 
 IS_TYPE = os.getenv("IS_TYPE", "dev")
 
-
-if IS_TYPE == "dev":
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.core.settings.dev')
-elif IS_TYPE == "prod":
+if IS_TYPE == "prod":
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.core.settings.prod')
+else:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.core.settings.dev')
 
 application = get_asgi_application()

@@ -2,11 +2,20 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from src.core.config import PROJECT_DIR
+from dotenv import load_dotenv
+
+load_dotenv(PROJECT_DIR / '.envs' / '.env')
+
+IS_TYPE = os.getenv("IS_TYPE", "dev")
 
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.core.settings')
+    if IS_TYPE == "prod":
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.core.settings.prod')
+    else:
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.core.settings.dev')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
