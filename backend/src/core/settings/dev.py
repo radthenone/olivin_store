@@ -1,10 +1,11 @@
-import socket
+import os
 
-from src.core.settings.base import *
 from dotenv import load_dotenv
-# from celery.schedules import crontab
 
-load_dotenv(PROJECT_DIR / '.envs' / 'dev' / 'django.env')
+from src.core.config import PROJECT_DIR
+from src.core.settings.base import *
+
+load_dotenv(PROJECT_DIR / ".envs" / "dev" / "django.env")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
@@ -12,22 +13,19 @@ DEBUG = bool(os.getenv("DEBUG"))
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
-MIDDLEWARE += [
-]
+MIDDLEWARE += []
 
-INSTALLED_APPS += (
-    'django_extensions',
-)
+INSTALLED_APPS += ("django_extensions",)
 
 # DATABASE
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv('POSTGRES_DB', 'postgres-olivin'),
-        'USER': os.getenv('POSTGRES_USER', 'olivin'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'olivin'),
-        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-        'PORT': os.getenv('POSTGRES_PORT', '5433'),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": os.getenv("POSTGRES_DB", "postgres-olivin"),
+        "USER": os.getenv("POSTGRES_USER", "olivin"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "olivin"),
+        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+        "PORT": os.getenv("POSTGRES_PORT", "5433"),
     }
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
@@ -53,48 +51,6 @@ MEDIA_ROOT = str(BASE_DIR / "media")
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = "/media/"
 
-# # CELERY
-# # ------------------------------------------------------------------------------
-# if USE_TZ:
-#     # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-timezone
-#     CELERY_TIMEZONE = TIME_ZONE
-# # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-broker_url
-# CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
-# # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_backend
-# CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
-# # https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-extended
-# CELERY_RESULT_EXTENDED = True
-# # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-accept_content
-# CELERY_ACCEPT_CONTENT = ["json"]
-# # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-task_serializer
-# CELERY_TASK_SERIALIZER = "json"
-# # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_serializer
-# CELERY_RESULT_SERIALIZER = "json"
-# # https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-time-limit
-# CELERY_TASK_TIME_LIMIT = 5 * 60
-# # https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-soft-time-limit
-# CELERY_TASK_SOFT_TIME_LIMIT = 60
-# # https://docs.celeryq.dev/en/stable/userguide/configuration.html#beat-scheduler
-# CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
-# # https://docs.celeryq.dev/en/stable/userguide/configuration.html#beat-schedule
-# CELERY_BEAT_SCHEDULE = {
-#     "clean_register_tokens": {
-#         "task": "src.users.tasks",
-#         "schedule": crontab(minute="*/30"),
-#     }
-# }
-
-# # EMAIL
-# # ------------------------------------------------------------------------------
-# # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
-# EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
-# DEFAULT_EMAIL = os.getenv("DEFAULT_EMAIL")
-# EMAIL_HOST = os.getenv("EMAIL_HOST")
-# EMAIL_PORT = os.getenv("EMAIL_PORT")
-# EMAIL_HOST_USER = ""
-# EMAIL_HOST_PASSWORD = ""
-# EMAIL_USE_TLS = False
-
 # DJANGO-CORS-HEADERS
 # ------------------------------------------------------------------------------
 # https://github.com/adamchainz/django-cors-headers#setup
@@ -108,30 +64,35 @@ CORS_ORIGIN_WHITELIST = (
     "https://127.0.0.1:8000",
 )
 
-# # CACHES
-# # ------------------------------------------------------------------------------
-# # https://docs.djangoproject.com/en/4.1/topics/cache/#redis
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": os.getenv("REDIS_URL"),
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#         },
-#     }
-# }
+# CACHES
+# ------------------------------------------------------------------------------
+# https://docs.djangoproject.com/en/4.1/topics/cache/#redis
+REDIS_HOST = os.getenv("REDIS_HOST", "127.0.0.1")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "some_redis_password")
+REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": REDIS_PASSWORD,
+        },
+    }
+}
 
 # LOGGING
 # ------------------------------------------------------------------------------
 LOGGING = {
     "version": 1,
-    'disable_existing_loggers': True,
+    "disable_existing_loggers": True,
     "formatters": {
         "json": {"()": "pythonjsonlogger.jsonlogger.JsonFormatter"},
     },
     "handlers": {
-        'default': {
-            'level': 'INFO',
+        "default": {
+            "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "json",
         },
@@ -139,27 +100,20 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "json",
         },
-        'file': {
-            'class': 'logging.handlers.RotatingFileHandler',
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": str(BASE_DIR / "logs" / "debug.log"),
-            'maxBytes': 1024 * 1024,  # 1 MB
-            'backupCount': 5,
+            "maxBytes": 1024 * 1024,  # 1 MB
+            "backupCount": 5,
         },
     },
     "loggers": {
-        '': {
-            'handlers': ['default'],
-            'level': 'INFO',
-            'propagate': True
-        },
-        "polls": {
-            "handlers": ["console"],
-            "level": "INFO"
-        },
-        'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
+        "": {"handlers": ["default"], "level": "INFO", "propagate": True},
+        "polls": {"handlers": ["console"], "level": "INFO"},
+        "django": {
+            "handlers": ["file"],
+            "level": "DEBUG",
+            "propagate": True,
         },
     },
 }

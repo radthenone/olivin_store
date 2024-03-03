@@ -8,9 +8,11 @@ https://docs.djangoproject.com/en/5.0/howto/deployment/wsgi/
 """
 
 import os
-from src.core.config import PROJECT_DIR
-from dotenv import load_dotenv
+
 from django.core.wsgi import get_wsgi_application
+from dotenv import load_dotenv
+
+from src.core.config import PROJECT_DIR
 
 load_dotenv(PROJECT_DIR / '.envs' / '.env')
 

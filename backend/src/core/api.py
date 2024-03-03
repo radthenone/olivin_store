@@ -1,4 +1,5 @@
 from ninja import NinjaAPI
+
 from src.common.api import router as common_router
 
 api = NinjaAPI()

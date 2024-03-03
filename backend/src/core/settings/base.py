@@ -1,19 +1,15 @@
-from src.core.config import BASE_DIR, SRC_DIR, PROJECT_DIR
-import os
-import sys
-
+from src.core.config import BASE_DIR
 
 DJANGO_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
 ]
 
-THIRD_PARTY_APPS = [
-]
+THIRD_PARTY_APPS = []
 
 CREATE_APPS = [
     "src.users",
@@ -22,23 +18,23 @@ CREATE_APPS = [
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CREATE_APPS
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'src.core.urls'
+ROOT_URLCONF = "src.core.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [str(BASE_DIR / "templates")],
-        'APP_DIRS': True,
-        'OPTIONS': {
+        "APP_DIRS": True,
+        "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
@@ -95,4 +91,3 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-

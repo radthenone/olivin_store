@@ -19,6 +19,7 @@ services:
 
   redis:
     image: redis
+    hostname: redis
     container_name: redis-olivin
     build:
       context: ./backend
@@ -43,6 +44,7 @@ services:
     env_file:
       - ./.envs/dev/django.env
       - ./.envs/dev/postgres.env
+      - ./.envs/dev/redis.env
     volumes:
       - ./backend:/src:z
     ports:

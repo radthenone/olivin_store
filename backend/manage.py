@@ -2,8 +2,10 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-from src.core.config import PROJECT_DIR
+
 from dotenv import load_dotenv
+
+from src.core.config import PROJECT_DIR
 
 load_dotenv(PROJECT_DIR / '.envs' / '.env')
 
