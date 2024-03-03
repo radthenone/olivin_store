@@ -23,19 +23,12 @@ RUN apt update && \
     build-essential \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
-#    && pip install "poetry==$POETRY_VERSION" && poetry --version
 
 FROM base AS build
-ARG SRC=/src
 
-WORKDIR ${SRC}
+WORKDIR /app
 
 COPY pyproject.toml poetry.lock ./
-
-#RUN touch requirements.txt && \
-#    poetry export --dev -f requirements.txt --output requirements.txt && \
-#    pip wheel --wheel-dir /usr/src/app/wheels -r requirements.txt && \
-#    rm -rf "$POETRY_CACHE_DIR"
 
 RUN python -m pip install "poetry==$POETRY_VERSION" && \
     poetry config virtualenvs.create false && \
@@ -44,13 +37,10 @@ RUN python -m pip install "poetry==$POETRY_VERSION" && \
 
 # dev stage
 FROM build AS dev
-ARG SRC=/src
 
-WORKDIR ${SRC}
+COPY --from=build /app /src
 
-#COPY --from=build /usr/src/app/wheels  /wheels/
-#RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
-#    && rm -rf /wheels/
+WORKDIR /src
 
 COPY ./docker/django.sh /django.sh
 RUN sed -i 's/\r$//g' /django.sh && chmod +x /django.sh

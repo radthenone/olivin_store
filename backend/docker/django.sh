@@ -17,7 +17,7 @@ admin_exists() {
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.base')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.core.settings.base')
 django.setup()
 
 from django.contrib.auth import get_user_model
@@ -44,7 +44,7 @@ fi
 echo "Continuing with the execution."
 
 echo "========== DJANGO RUNSERVER =========="
-#python manage.py runserver_plus 0.0.0.0:8000
-uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload
+
+uvicorn src.core.asgi:application --host "${DJANGO_HOST}" --port "${DJANGO_PORT}" --reload
 
 exec "$@"

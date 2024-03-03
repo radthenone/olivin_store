@@ -24,9 +24,8 @@ factory-boy = "^3.3.0"
 pytest = "^8.0.2"
 pytest-django = "^4.8.0"
 pytest-mock = "^3.12.0"
-django-silk = "^5.1.0"
-django-debug-toolbar = "^4.3.0"
 python-json-logger = "^2.0.7"
+werkzeug = "^3.0.1"
 
 [build-system]
 requires = ["poetry-core"]

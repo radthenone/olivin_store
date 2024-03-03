@@ -2,3 +2,4 @@
 poetry.lock
 staticfiles
 logs
+src/**/migrations/*

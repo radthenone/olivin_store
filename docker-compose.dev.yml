@@ -1,6 +1,6 @@
 version: "3.11"
 services:
-  postgres:
+  db:
     container_name: postgres-olivin
     image: postgres:14.6
     hostname: postgres
@@ -11,6 +11,8 @@ services:
       - ./.envs/dev/postgres.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    environment:
+      - "POSTGRES_HOST_AUTH_METHOD=trust"
     restart: on-failure
     networks:
       - my_network
@@ -30,7 +32,7 @@ services:
     networks:
       - my_network
 
-  django: &django
+  web: &django
     container_name: django-olivin
     build:
       context: ./backend
@@ -42,11 +44,11 @@ services:
       - ./.envs/dev/django.env
       - ./.envs/dev/postgres.env
     volumes:
-      - ./backend/src:/src:z
+      - ./backend:/src:z
     ports:
       - "8000:8000"
     depends_on:
-      - postgres
+      - db
       - redis
     networks:
       - my_network
