@@ -45,6 +45,6 @@ echo "Continuing with the execution."
 
 echo "========== DJANGO RUNSERVER =========="
 
-uvicorn src.core.asgi:application --host "${DJANGO_HOST}" --port "${DJANGO_PORT}" --reload
+uvicorn src.core.asgi:application --host "${DJANGO_HOST}" --port "${DJANGO_PORT}" --reload --lifespan "off"
 
 exec "$@"
