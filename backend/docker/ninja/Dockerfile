@@ -28,10 +28,11 @@ FROM base AS build
 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml ./
 
 RUN python -m pip install "poetry==$POETRY_VERSION" && \
     poetry config virtualenvs.create false && \
+    poetry lock --no-update && \
     poetry install $(if [ "$BUILD_ENVIRONMENT" = "dev" ]; then echo "--with dev"; fi) --no-interaction --no-ansi --no-root --no-cache \
     && rm -rf "$POETRY_CACHE_DIR"
 

@@ -1,6 +1,7 @@
 ### install backend
 ```bash
 cd backend
+poetry lock --no-update
 poetry install
 ```
 
