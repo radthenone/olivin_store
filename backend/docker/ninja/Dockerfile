@@ -24,6 +24,10 @@ RUN apt update && \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+COPY ./docker/celery/* ./celery/
+RUN sed -i 's/\r$//g' celery/*.sh
+RUN chmod +x ./celery/*.sh
+
 FROM base AS build
 
 WORKDIR /app
@@ -45,10 +49,6 @@ WORKDIR /src
 
 COPY ./docker/django.sh /django.sh
 RUN sed -i 's/\r$//g' /django.sh && chmod +x /django.sh
-
-COPY ./docker/celery/* ./celery/
-RUN sed -i 's/\r$//g' celery/*.sh
-RUN chmod +x ./celery/*.sh
 
 COPY ./docker/entrypoint.sh /entrypoint.sh
 RUN sed -i 's/\r$//g' /entrypoint.sh && chmod +x /entrypoint.sh

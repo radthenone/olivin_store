@@ -1,3 +1,5 @@
+from src.common import models, tasks  # noqa
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -5,14 +7,17 @@ from django.urls import path
 from ninja import NinjaAPI
 
 from src.common.routes import common_router
-from src.core.celery.utils import create_celery
+from src.core.celery import celery
 
 api = NinjaAPI()
-api.celery_app = create_celery()
+
+
+@celery.task
+def connect_celery_task():
+    print("Hello, celery!")  # noqa: T201
 
 
 api.add_router("/common/", common_router, tags=["common"])
-
 
 urlpatterns = [
     path("admin/", admin.site.urls),

@@ -3,8 +3,12 @@
 set -o errexit
 set -o nounset
 
+sleep 5
+
+export CELERY_BROKER_URL="redis://:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}/0"
+
 worker_ready() {
-    celery -A main.celery inspect ping
+    celery -A src.core.celery inspect ping
 }
 
 until worker_ready; do
@@ -13,6 +17,8 @@ until worker_ready; do
 done
 >&2 echo 'Celery workers is available'
 
-celery flower \
-    --app=main.celery \
-    --broker="${CELERY_BROKER_URL}"
+celery \
+    -A src.core.celery  \
+    -b "${CELERY_BROKER_URL}" \
+    flower \
+    --basic_auth="${CELERY_FLOWER_USER}:${CELERY_FLOWER_PASSWORD}"

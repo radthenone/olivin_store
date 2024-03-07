@@ -9,7 +9,9 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
 ]
 
-THIRD_PARTY_APPS = []
+THIRD_PARTY_APPS = [
+    "django_celery_beat",
+]
 
 CREATE_APPS = [
     "src.users",

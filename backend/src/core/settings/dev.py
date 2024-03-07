@@ -2,20 +2,23 @@ import os
 
 from dotenv import load_dotenv
 
+# from celery.schedules import crontab
 from src.core.config import PROJECT_DIR
 from src.core.settings.base import *
 
 load_dotenv(PROJECT_DIR / ".envs" / "dev" / "django.env")
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", "test_secret_key")
 
-DEBUG = bool(os.getenv("DEBUG"))
+DEBUG = bool(os.getenv("DEBUG", "True"))
 
-ALLOWED_HOSTS = str(os.getenv("ALLOWED_HOSTS")).split(",")
+ALLOWED_HOSTS = str(os.getenv("ALLOWED_HOSTS", "*")).split(",")
 
 MIDDLEWARE += []
 
 INSTALLED_APPS += ("django_extensions",)
+
+DJANGO_ALLOW_ASYNC_UNSAFE = True
 
 # DATABASE
 DATABASES = {
@@ -51,23 +54,27 @@ MEDIA_ROOT = str(BASE_DIR / "media")
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = "/media/"
 
-# DJANGO-CORS-HEADERS
-# ------------------------------------------------------------------------------
-# https://github.com/adamchainz/django-cors-headers#setup
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOW_CREDENTIALS = True
-CORS_URLS_REGEX = r"^/api/.*$"
-CORS_ORIGIN_WHITELIST = (
-    "http://localhost:8000",
-    "https://localhost:8000",
-    "http://127.0.0.1:8000",
-    "https://127.0.0.1:8000",
-)
+# # DJANGO-CORS-HEADERS
+# # ------------------------------------------------------------------------------
+# # https://github.com/adamchainz/django-cors-headers#setup
+# CORS_ALLOW_ALL_ORIGINS = False
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_URLS_REGEX = r"^/api/.*$"
+# CORS_ORIGIN_WHITELIST = (
+#     "http://localhost:8000",
+#     "https://localhost:8000",
+#     "http://127.0.0.1:8000",
+#     "https://127.0.0.1:8000",
+#     "http://localhost:8080",
+#     "https://localhost:8080",
+#     "http://127.0.0.1:8080",
+#     "https://127.0.0.1:8080",
+# )
 
 # CACHES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/4.1/topics/cache/#redis
-REDIS_HOST = os.getenv("REDIS_HOST", "127.0.0.1")
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = os.getenv("REDIS_PORT", "6379")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "some_redis_password")
 REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
@@ -81,14 +88,6 @@ CACHES = {
         },
     }
 }
-CELERY_BROKER_URL = os.getenv(
-    "CELERY_BROKER_URL",
-    "redis://127.0.0.1:6379/0",
-)
-CELERY_RESULT_BACKEND = os.getenv(
-    "CELERY_RESULT_BACKEND",
-    "redis://127.0.0.1:6379/0",
-)
 
 # LOGGING
 # ------------------------------------------------------------------------------
@@ -124,4 +123,35 @@ LOGGING = {
             "propagate": True,
         },
     },
+}
+
+# CELERY
+# ------------------------------------------------------------------------------
+if USE_TZ:
+    # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-timezone
+    CELERY_TIMEZONE = TIME_ZONE
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-broker_url
+CELERY_BROKER_URL = REDIS_URL
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_backend
+CELERY_RESULT_BACKEND = REDIS_URL
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-extended
+CELERY_RESULT_EXTENDED = True
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-accept_content
+CELERY_ACCEPT_CONTENT = ["json"]
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-task_serializer
+CELERY_TASK_SERIALIZER = "json"
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_serializer
+CELERY_RESULT_SERIALIZER = "json"
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-time-limit
+CELERY_TASK_TIME_LIMIT = 5 * 60
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-soft-time-limit
+CELERY_TASK_SOFT_TIME_LIMIT = 60
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#beat-scheduler
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#beat-schedule
+CELERY_BEAT_SCHEDULE = {
+    # "clean_register_tokens": {
+    #     "task": "apps.users.tasks.clean_expired_register_tokens",
+    #     "schedule": crontab(minute="*/30"),
+    # }
 }

@@ -7,6 +7,4 @@ if __name__ == "__main__":
         port=8080,
         log_level="info",
         reload=True,
-        lifespan="off",
-        interface="wsgi",
     )

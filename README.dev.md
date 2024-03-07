@@ -27,3 +27,8 @@ cd backend
 poetry run python manage.py makemigrations
 poetry run python manage.py migrate
 ```
+
+```bash
+cd backend
+poetry run python manage.py runserver_plus 127.0.0.1:8080
+```

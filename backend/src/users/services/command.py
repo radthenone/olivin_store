@@ -1,42 +1,37 @@
+import argparse
 import os
 
+import django
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand
-from dotenv import load_dotenv
 
-from src.core.config import PROJECT_DIR
-
-load_dotenv(PROJECT_DIR / ".envs" / ".env")
-
-IS_TYPE = os.getenv("IS_TYPE", "dev")
-
-if IS_TYPE == "prod":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "src.core.settings.prod")
-else:
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "src.core.settings.dev")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "src.core.settings.base")
+django.setup()
 
 User = get_user_model()
 
+parser = argparse.ArgumentParser(
+    description="Create a superuser with email and password only"
+)
+parser.add_argument("--email", required=True, help="Superuser email")
+parser.add_argument("--password", required=True, help="Superuser password")
 
-class Command(BaseCommand):
-    help = "Create a superuser with email and password only"
+args = parser.parse_args()
 
-    def add_arguments(self, parser):
-        parser.add_argument("--email", required=True, help="Superuser email")
-        parser.add_argument("--password", required=True, help="Superuser password")
 
-    def handle(self, *args, **kwargs):
-        email = kwargs["email"]
-        password = kwargs["password"]
+def create_superuser() -> None:
+    email = args.email
+    password = args.password
 
-        try:
-            User.objects.get(email=email)
-            self.stdout.write(
-                self.style.ERROR(f'User with email "{email}" already exists.')
-            )
-        except ObjectDoesNotExist:
-            User.objects.create_superuser(
-                email=email, password=password, is_staff=True, is_superuser=True
-            )
-            self.stdout.write(self.style.SUCCESS("Superuser created successfully."))
+    try:
+        User.objects.get(email=email)
+        print(f"User with email {email} already exists.")
+    except ObjectDoesNotExist:
+        user = User(email=email, password=password, is_staff=True, is_superuser=True)
+        user.set_password(password)
+        user.save()
+        print("Superuser created successfully.")
+
+
+create_superuser()

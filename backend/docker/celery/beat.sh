@@ -3,5 +3,9 @@
 set -o errexit
 set -o nounset
 
+
 rm -f './celerybeat.pid'
-celery -A main.celery beat -l info
+
+sleep 5
+
+celery -A src.core.celery beat -l info
