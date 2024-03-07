@@ -14,8 +14,6 @@ services:
     environment:
       - "POSTGRES_HOST_AUTH_METHOD=trust"
     restart: on-failure
-    networks:
-      - my_network
 
   redis:
     image: redis
@@ -30,8 +28,6 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    networks:
-      - my_network
 
   web: &django
     container_name: django-olivin
@@ -52,12 +48,59 @@ services:
     depends_on:
       - db
       - redis
-    networks:
-      - my_network
+
+  celery-beat:
+    <<: *django
+    ports: []
+    command: /celery/beat.sh
+    container_name: celery-beat
+    volumes:
+      - ./backend:/src:z
+    env_file:
+      - ./.envs/dev/django.env
+      - ./.envs/dev/postgres.env
+      - ./.envs/dev/redis.env
+    depends_on:
+      - db
+      - redis
+    healthcheck:
+      test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
+      interval: "60s"
+      timeout: "3s"
+      start_period: "5s"
+      retries: 3
+
+  celery-worker:
+    <<: *django
+    ports: []
+    command: /celery/worker.sh
+    container_name: celery-worker
+    volumes:
+      - ./backend:/src:z
+    env_file:
+      - ./.envs/dev/django.env
+      - ./.envs/dev/postgres.env
+      - ./.envs/dev/redis.env
+    depends_on:
+      - db
+      - redis
+
+  flower:
+    <<: *django
+    ports:
+      - "5555:5555"
+    command: /celery/flower.sh
+    container_name: flower
+    volumes:
+      - ./backend:/src:z
+    env_file:
+      - ./.envs/dev/django.env
+      - ./.envs/dev/postgres.env
+      - ./.envs/dev/redis.env
+    depends_on:
+      - db
+      - redis
 
 volumes:
   postgres_data:
   redis_data:
-
-networks:
-  my_network:

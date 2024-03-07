@@ -5,8 +5,10 @@ from django.urls import path
 from ninja import NinjaAPI
 
 from src.common.routes import common_router
+from src.core.celery.utils import create_celery
 
 api = NinjaAPI()
+api.celery_app = create_celery()
 
 
 api.add_router("/common/", common_router, tags=["common"])

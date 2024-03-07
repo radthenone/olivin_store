@@ -34,9 +34,7 @@ if [[ $(admin_exists) == "False" ]]; then
     export DJANGO_SUPERUSER_USERNAME="${DJANGO_SUPERUSER_USERNAME}"
     export DJANGO_SUPERUSER_EMAIL="${DJANGO_SUPERUSER_EMAIL}"
     export DJANGO_SUPERUSER_PASSWORD="${DJANGO_SUPERUSER_PASSWORD}"
-    python manage.py createsuperuser \
-        --email "${DJANGO_SUPERUSER_EMAIL}" \
-        --noinput
+    python src/users/services/command.py --email "${DJANGO_SUPERUSER_EMAIL}" --password "${DJANGO_SUPERUSER_PASSWORD}"
 else
     echo "Admin user exists. No action required."
 fi

@@ -11,7 +11,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = bool(os.getenv("DEBUG"))
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
+ALLOWED_HOSTS = str(os.getenv("ALLOWED_HOSTS")).split(",")
 
 MIDDLEWARE += []
 
@@ -81,6 +81,14 @@ CACHES = {
         },
     }
 }
+CELERY_BROKER_URL = os.getenv(
+    "CELERY_BROKER_URL",
+    "redis://127.0.0.1:6379/0",
+)
+CELERY_RESULT_BACKEND = os.getenv(
+    "CELERY_RESULT_BACKEND",
+    "redis://127.0.0.1:6379/0",
+)
 
 # LOGGING
 # ------------------------------------------------------------------------------

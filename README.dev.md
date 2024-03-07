@@ -20,3 +20,10 @@ docker-compose -f docker-compose.dev.yml up --build -d
 ```bash
 docker-compose -f docker-compose.dev.yml run --rm web
 ```
+
+### run migrations
+```bash
+cd backend
+poetry run python manage.py makemigrations
+poetry run python manage.py migrate
+```
