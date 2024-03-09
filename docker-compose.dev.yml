@@ -29,7 +29,7 @@ services:
     volumes:
       - redis_data:/data
 
-  web: &django
+  backend: &django
     container_name: django-olivin
     build:
       context: ./backend
@@ -48,6 +48,8 @@ services:
     depends_on:
       - db
       - redis
+      - minio
+      - mailcatcher
 
   celery-beat:
     <<: *django
@@ -101,6 +103,27 @@ services:
       - db
       - redis
 
+  mailcatcher:
+    image: sj26/mailcatcher
+    container_name: mailcatcher-olivin
+    ports:
+      - "1080:1080" # port web
+      - "1025:1025" # port SMTP
+    volumes:
+      - mailcatcher_data:/data
+
+  minio:
+    container_name: minio-olivin
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
 volumes:
   postgres_data:
   redis_data:
+  mailcatcher_data:
+  minio_data:

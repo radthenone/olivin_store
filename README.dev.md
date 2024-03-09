@@ -18,7 +18,7 @@ docker-compose -f docker-compose.dev.yml up --build -d
 
 ### run docker ninja-django
 ```bash
-docker-compose -f docker-compose.dev.yml run --rm web
+docker-compose -f docker-compose.dev.yml run --rm backend
 ```
 
 ### run migrations
