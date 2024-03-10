@@ -24,7 +24,7 @@ def divide(x, y):
 
 def make_divide(x, y):
     try:
-        result = celery.send_task("src.common.tasks.divide", args=[x, y])
+        result = divide.delay(x, y)
         return result
-    except Exception as e:
-        raise HttpError(status_code=500, message=str(e))
+    except Exception:
+        return None

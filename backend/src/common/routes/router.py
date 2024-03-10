@@ -41,7 +41,7 @@ def task(request):
 
 
 @router.post("/divide/{a}/{b}")
-def divide_request(a: int, b: int):
+def divide_request(request, a: int, b: int):
     result = make_divide(a, b)
     return JsonResponse(
         {

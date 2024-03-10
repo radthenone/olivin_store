@@ -29,7 +29,7 @@ services:
     volumes:
       - redis_data:/data
 
-  backend: &django
+  backend: &backend
     container_name: django-olivin
     build:
       context: ./backend
@@ -52,10 +52,10 @@ services:
       - mailcatcher
 
   celery-beat:
-    <<: *django
+    <<: *backend
     ports: []
     command: /celery/beat.sh
-    container_name: celery-beat
+    container_name: celery-beat-olivin
     volumes:
       - ./backend:/src:z
     env_file:
@@ -75,10 +75,10 @@ services:
       retries: 3
 
   celery-worker:
-    <<: *django
+    <<: *backend
     ports: []
     command: /celery/worker.sh
-    container_name: celery-worker
+    container_name: celery-worker-olivin
     volumes:
       - ./backend:/src:z
     env_file:
@@ -92,11 +92,11 @@ services:
       - mailcatcher
 
   flower:
-    <<: *django
+    <<: *backend
     ports:
       - "5555:5555"
     command: /celery/flower.sh
-    container_name: flower
+    container_name: flower-olivin
     volumes:
       - ./backend:/src:z
     env_file:
