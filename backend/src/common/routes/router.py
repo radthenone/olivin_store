@@ -4,7 +4,7 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from ninja import Router
 
-from src.common.tasks import divide
+from src.common.tasks import divide, make_divide
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,17 @@ def pong(request):
 @router.get("/task")
 def task(request):
     result = divide.delay(5, 2)
+    return JsonResponse(
+        {
+            "task_id": result.task_id,
+            "message": result.get(),
+        }
+    )
+
+
+@router.post("/divide/{a}/{b}")
+def divide_request(a: int, b: int):
+    result = make_divide(a, b)
     return JsonResponse(
         {
             "task_id": result.task_id,

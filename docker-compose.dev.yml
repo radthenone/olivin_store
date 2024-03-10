@@ -65,6 +65,8 @@ services:
     depends_on:
       - db
       - redis
+      - minio
+      - mailcatcher
     healthcheck:
       test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
       interval: "60s"
@@ -86,6 +88,8 @@ services:
     depends_on:
       - db
       - redis
+      - minio
+      - mailcatcher
 
   flower:
     <<: *django
@@ -102,6 +106,8 @@ services:
     depends_on:
       - db
       - redis
+      - minio
+      - mailcatcher
 
   mailcatcher:
     image: sj26/mailcatcher
