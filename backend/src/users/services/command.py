@@ -4,7 +4,6 @@ import os
 import django
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.management import BaseCommand
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "src.core.settings.base")
 django.setup()

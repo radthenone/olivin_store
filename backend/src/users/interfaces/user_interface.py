@@ -40,6 +40,13 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
+    def create_superuser(
+        self,
+        user_obj: "UserType",
+    ) -> bool:
+        pass
+
+    @abstractmethod
     def update_user(
         self,
         user_obj: "UserType",
