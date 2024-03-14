@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Optional, TypeVar
 from uuid import UUID
 
-from src.users.schemas import UserUpdateSchema
+from src.users.schemas import SuperUserCreateSchema, UserCreateSchema, UserUpdateSchema
 
 if TYPE_CHECKING:
     from src.users.models import User
@@ -36,6 +36,7 @@ class IUserRepository(ABC):
     def create_user(
         self,
         user_obj: "UserType",
+        user_create: UserCreateSchema,
     ) -> bool:
         pass
 
@@ -43,6 +44,7 @@ class IUserRepository(ABC):
     def create_superuser(
         self,
         user_obj: "UserType",
+        user_super_create: SuperUserCreateSchema,
     ) -> bool:
         pass
 
