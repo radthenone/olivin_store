@@ -1,13 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, TypeVar
+from typing import Optional
 from uuid import UUID
 
 from src.users.schemas import SuperUserCreateSchema, UserCreateSchema, UserUpdateSchema
-
-if TYPE_CHECKING:
-    from src.users.models import User
-
-UserType = TypeVar("UserType", bound=User)
+from src.users.types import UserType
 
 
 class IUserRepository(ABC):
