@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 # from celery.schedules import crontab
 from src.core.config import PROJECT_DIR
-from src.core.settings.base import *
+from src.core.settings.base import *  # noqa
 
 load_dotenv(PROJECT_DIR / ".envs" / "dev" / "django.env")
 
@@ -165,3 +165,8 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_PORT = os.getenv("EMAIL_PORT", 1025)
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", False)
+
+# JWT
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
+REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 180)

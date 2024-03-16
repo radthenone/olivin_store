@@ -14,7 +14,7 @@ api = NinjaAPI()
 
 @celery.task
 def connect_celery_task():
-    print("Hello, celery!")  # noqa: T201
+    print("Hello, celery!")
 
 
 api.add_router("/common/", common_router, tags=["common"])

@@ -20,6 +20,7 @@ django-redis = "^5.4.0"
 celery = "^5.3.6"
 flower = "^2.0.1"
 django-celery-beat = "^2.6.0"
+pyjwt = "^2.8.0"
 
 
 [tool.poetry.group.dev.dependencies]
