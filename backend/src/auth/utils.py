@@ -88,3 +88,15 @@ def get_refresh_token(
     )
     logger.info("Refresh token created: %s", refresh_token)
     return refresh_token
+
+
+def encode_jwt_token(username: str, user_id: uuid.UUID) -> dict:
+    access_token = get_access_token(username, user_id)
+    refresh_token = get_refresh_token(username, user_id)
+    data = {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+    logger.info("Tokens set: %s", data)
+    return data
