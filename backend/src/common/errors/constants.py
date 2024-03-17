@@ -1,4 +1,3 @@
 class StatusCodes:
     SERVER_ERROR = 500
-    PERMISSION_DENIED = 403
     NOT_FOUND = 404

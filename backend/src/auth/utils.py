@@ -6,6 +6,8 @@ import jwt
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 
+from src.auth.errors import InvalidCredentials, InvalidToken, TokenExpired
+
 logger = logging.getLogger(__name__)
 
 

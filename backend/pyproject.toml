@@ -64,6 +64,7 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
+
 ]
 line-length = 88
 indent-width = 4
@@ -86,6 +87,7 @@ select = [
     "RUF100",
     "F404",
     "TCH",
+    "F403",
 ]
 ignore = []
 fixable = ["ALL"]

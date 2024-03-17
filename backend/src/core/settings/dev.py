@@ -2,9 +2,8 @@ import os
 
 from dotenv import load_dotenv
 
-# from celery.schedules import crontab
 from src.core.config import PROJECT_DIR
-from src.core.settings.base import *  # noqa
+from src.core.settings.base import *  # noqa: F403
 
 load_dotenv(PROJECT_DIR / ".envs" / "dev" / "django.env")
 
