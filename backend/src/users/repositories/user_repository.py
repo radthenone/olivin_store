@@ -29,7 +29,6 @@ class UserRepository(IUserRepository):
 
     def create_user(
         self,
-        user_obj: User,
         user_create: UserCreateSchema,
     ) -> bool:
         try:
@@ -54,7 +53,6 @@ class UserRepository(IUserRepository):
 
     def create_superuser(
         self,
-        user_obj: User,
         user_super_create: SuperUserCreateSchema,
     ) -> bool:
         try:

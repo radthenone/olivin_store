@@ -31,7 +31,6 @@ class IUserRepository(ABC):
     @abstractmethod
     def create_user(
         self,
-        user_obj: "UserType",
         user_create: UserCreateSchema,
     ) -> bool:
         pass
@@ -39,7 +38,6 @@ class IUserRepository(ABC):
     @abstractmethod
     def create_superuser(
         self,
-        user_obj: "UserType",
         user_super_create: SuperUserCreateSchema,
     ) -> bool:
         pass

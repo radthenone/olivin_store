@@ -21,6 +21,7 @@ celery = "^5.3.6"
 flower = "^2.0.1"
 django-celery-beat = "^2.6.0"
 pyjwt = "^2.8.0"
+orjson = "^3.9.15"
 
 
 [tool.poetry.group.dev.dependencies]

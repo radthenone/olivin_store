@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class CreatedAtSchema(BaseModel):
@@ -11,3 +11,14 @@ class UpdatedAtSchema(BaseModel):
 
 class MessageSchema(BaseModel):
     message: str
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "required": ["message"],
+            "properties": {
+                "message": {
+                    "type": "string",
+                },
+            },
+        }
+    )

@@ -7,6 +7,9 @@ from pydantic import (
 )
 
 from src.auth.schemas import PasswordsMatchSchema
+from src.common.schemas import (
+    MessageSchema,
+)
 from src.users.validations import (
     validate_email,
     validate_password,
@@ -122,6 +125,34 @@ class SuperUserCreateSchema(BaseModel):
             "example": {
                 "password": "password",
                 "email": "a@a.com",
+            },
+        }
+    )
+
+
+class SuperUserCreateSuccessSchema(MessageSchema):
+    message: str
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "Superuser create success schema",
+            "title": "Superuser create success schema",
+            "example": {
+                "message": "Superuser created successfully",
+            },
+        }
+    )
+
+
+class SuperUserCreateErrorSchema(MessageSchema):
+    message: str
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "Superuser create error schema",
+            "title": "Superuser create error schema",
+            "example": {
+                "message": "Error while creating superuser",
             },
         }
     )

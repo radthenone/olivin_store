@@ -11,6 +11,10 @@ from src.core.celery import celery
 
 api = NinjaAPI()
 
+api.renderers = {
+    "default": "src.common.renderers.ORJSONRenderer",
+}
+
 
 @celery.task
 def connect_celery_task():
