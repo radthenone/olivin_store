@@ -2,7 +2,7 @@ from typing import Optional
 
 from django.contrib.auth.hashers import check_password
 
-from src.common.renderers import ORJSONRenderer
+from src.common.renderers import json_response
 from src.users.errors import (
     EmailAlreadyExists,
     NotAuthenticated,
@@ -36,7 +36,7 @@ class UserService:
     def create_superuser(
         self,
         user_super_create: "SuperUserCreateSchema",
-    ) -> bool:
+    ) -> Optional["bytes"]:
         if self.user_repository.get_user_by_email(
             email=user_super_create.email,
         ):
@@ -45,12 +45,16 @@ class UserService:
         if self.user_repository.create_superuser(
             user_super_create=user_super_create,
         ):
-            return ORJSONRenderer.render(
-                data=SuperUserCreateSuccessSchema,
-                response_status=201,
+            return json_response(
+                data=SuperUserCreateSuccessSchema(
+                    message="User created successfully"
+                ).model_dump(),
+                status=201,
             )
 
-        return ORJSONRenderer.render(
-            data=SuperUserCreateErrorSchema,
-            response_status=500,
+        return json_response(
+            data=SuperUserCreateErrorSchema(
+                message="Error while creating superuser"
+            ).model_dump(),
+            status=500,
         )
