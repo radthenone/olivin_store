@@ -15,3 +15,8 @@ class InvalidToken(BasicHTTPException):
 class InvalidCredentials(BasicHTTPException):
     MESSAGE = "Invalid credentials"
     STATUS = StatusCodes.PERMISSION_DENIED
+
+
+class AuthorizationFailed(BasicHTTPException):
+    MESSAGE = "Authorization failed"
+    STATUS = StatusCodes.PERMISSION_DENIED

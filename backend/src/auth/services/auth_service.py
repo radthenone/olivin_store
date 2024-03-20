@@ -1,28 +1,26 @@
 from typing import Optional
 
 from django.contrib.auth.hashers import check_password
+from ninja.security import HttpBearer
 
 from src.common.responses import ORJSONResponse
 from src.users.errors import (
     EmailAlreadyExists,
     NotAuthenticated,
-    UsernameAlreadyExists,
     UserNotFound,
 )
 from src.users.schemas import (
-    SuperUserCreateErrorSchema,
-    SuperUserCreateSchema,
-    SuperUserCreateSuccessSchema,
+    UserCreateSchema,
 )
 from src.users.types import UserType
 
 
-class UserService:
+class AuthService:
     def __init__(self, repository, *args, **kwargs):
         self.user_repository = repository
         super().__init__(*args, **kwargs)
 
-    def authenticate_user(
+    def is_authenticate_user(
         self,
         username: str,
         password: str,
@@ -34,33 +32,33 @@ class UserService:
             raise NotAuthenticated
         return user
 
-    def create_superuser(
+    def is_abstract_user(
         self,
-        user_super_create: "SuperUserCreateSchema",
+        username: str,
+        password: str,
+    ) -> Optional["UserType"]:
+        user = self.user_repository.get_user_by_username(username)
+        if user is None:
+            raise UserNotFound
+        if not check_password(password, user.password):
+            raise NotAuthenticated
+        return user
+
+    def register_user(
+        self,
+        user_create: "UserCreateSchema",
     ) -> Optional["ORJSONResponse"]:
         if self.user_repository.get_user_by_email(
-            email=user_super_create.email,
+            email=user_create.email,
         ):
             raise EmailAlreadyExists
 
-        if self.user_repository.get_user_by_username(
-            username=user_super_create.username,
-        ):
-            raise UsernameAlreadyExists
-
-        if self.user_repository.create_superuser(
-            user_super_create=user_super_create,
+        if self.user_repository.create_user(
+            user_create=user_create,
         ):
             return ORJSONResponse(
-                data=SuperUserCreateSuccessSchema(
+                data=UserCreateSuccessSchema(
                     message="User created successfully"
                 ).model_dump(),
                 status=201,
             )
-
-        return ORJSONResponse(
-            data=SuperUserCreateErrorSchema(
-                message="Error while creating superuser"
-            ).model_dump(),
-            status=400,
-        )

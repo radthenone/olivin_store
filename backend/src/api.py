@@ -8,6 +8,10 @@ from ninja import NinjaAPI
 
 from src.common.routes import common_router
 from src.core.celery import celery
+from src.core.interceptors.auth_interceptors import AuthBearer
+from src.common.responses import ORJSONResponse
+from src.auth.utils import get_token_from_request
+from src.common.utils import Depends
 
 api = NinjaAPI()
 
@@ -22,6 +26,23 @@ def connect_celery_task():
 
 
 api.add_router("/common/", common_router, tags=["common"])
+
+
+@api.get("/bearer", auth=AuthBearer())
+def bearer(
+    request,
+    token: str = Depends(get_token_from_request),
+):
+    if request.auth is None:
+        return ORJSONResponse(
+            data={"message": "Unauthorized"},
+            status_code=401,
+        )
+    return ORJSONResponse(
+        {"token": token},
+        status_code=200,
+    )
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
