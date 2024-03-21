@@ -90,39 +90,39 @@ CACHES = {
 
 # LOGGING
 # ------------------------------------------------------------------------------
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    "formatters": {
-        "json": {"()": "pythonjsonlogger.jsonlogger.JsonFormatter"},
-    },
-    "handlers": {
-        "default": {
-            "level": "INFO",
-            "class": "logging.StreamHandler",
-            "formatter": "json",
-        },
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "json",
-        },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "debug.log"),
-            "maxBytes": 1024 * 1024,  # 1 MB
-            "backupCount": 5,
-        },
-    },
-    "loggers": {
-        "": {"handlers": ["default"], "level": "INFO", "propagate": True},
-        "polls": {"handlers": ["console"], "level": "INFO"},
-        "django": {
-            "handlers": ["file"],
-            "level": "DEBUG",
-            "propagate": True,
-        },
-    },
-}
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": True,
+#     "formatters": {
+#         "json": {"()": "pythonjsonlogger.jsonlogger.JsonFormatter"},
+#     },
+#     "handlers": {
+#         "default": {
+#             "level": "INFO",
+#             "class": "logging.StreamHandler",
+#             "formatter": "json",
+#         },
+#         "console": {
+#             "class": "logging.StreamHandler",
+#             "formatter": "json",
+#         },
+#         "file": {
+#             "class": "logging.handlers.RotatingFileHandler",
+#             "filename": str(BASE_DIR / "logs" / "debug.log"),
+#             "maxBytes": 1024 * 1024,  # 1 MB
+#             "backupCount": 5,
+#         },
+#     },
+#     "loggers": {
+#         "": {"handlers": ["default"], "level": "INFO", "propagate": True},
+#         "polls": {"handlers": ["console"], "level": "INFO"},
+#         "django": {
+#             "handlers": ["file"],
+#             "level": "DEBUG",
+#             "propagate": True,
+#         },
+#     },
+# }
 
 # CELERY
 # ------------------------------------------------------------------------------

@@ -1,45 +1,27 @@
-from typing import Callable
+import json
+from typing import Any, Callable
 
-import injector
-from injector import inject
-from pydantic import ConfigDict
-from pydantic_core import SchemaSerializer, core_schema
-
-#
-# class Depends:
-#     @inject
-#     def __init__(self, dependency: Callable):
-#         self.dependency = dependency
-#
-#     def configure(self, binder):
-#         binder.bind(Callable, self.dependency)
+from dependency_injector import providers
+from ninja import Schema
+from pydantic import BaseModel
 
 
-# TODO in progress
-class Depends(injector.Module):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+class Depends:
+    def __init__(self, fn: Callable = None):
+        self.fn = fn
+        self.provider = providers.Callable(fn)
 
-    def __init__(self, dependency: Callable):
-        self.dependency = dependency
+    def __call__(self, *args, **kwargs):
+        return self.provider(*args, **kwargs)
 
-    def configure(self, binder):
-        binder.bind(Callable, self.dependency)
+    def __repr__(self):
+        return DependsModel(depends=self).to_json()
 
-    @classmethod
-    def _validate(cls, value):
-        return value
 
-    @classmethod
-    def __get_pydantic_core_schema__(cls, source_type, handler):
-        _ = source_type
-        schema = core_schema.no_info_after_validator_function(
-            cls._validate,
-            handler(set),
-            serialization=core_schema.plain_serializer_function_ser_schema(
-                cls._validate,
-                info_arg=False,
-                return_schema=core_schema.set_schema(),
-            ),
-        )
-        cls.__pydantic_serializer__ = SchemaSerializer(schema)
-        return schema
+class DependsModel(BaseModel):
+    depends: Any
+
+    def to_json(self) -> str:
+        function_name = self.depends.fn.__name__
+        result = {function_name: self.depends()}
+        return json.dumps(result)

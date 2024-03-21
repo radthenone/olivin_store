@@ -23,6 +23,7 @@ django-celery-beat = "^2.6.0"
 pyjwt = "^2.8.0"
 orjson = "^3.9.15"
 injector = "^0.21.0"
+dependency-injector = "^4.41.0"
 
 
 [tool.poetry.group.dev.dependencies]
