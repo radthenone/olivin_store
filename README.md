@@ -10,7 +10,7 @@ The initial assumption is that the project is to have:
 - email system
 - photo storage
 - sql database
-- celery queue system
+- celery queue system with events communicate
 - payload with preorder
 - product management
 - event management (promotions temporarily change the prices of selected event products)
