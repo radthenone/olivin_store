@@ -7,15 +7,15 @@ from django.contrib import admin
 from django.http import JsonResponse
 from django.urls import path
 from injector import Injector
-from ninja import NinjaAPI
-from pydantic import BaseModel
+from ninja import NinjaAPI, Schema
+from pydantic import BaseModel, Extra
 
 from src.auth.utils import get_token_from_request
 from src.common import models, tasks  # noqa
 from src.common.renderers import ORJSONRenderer
 from src.common.responses import ORJSONResponse
 from src.common.routes import common_router
-from src.common.utils import Depends
+from src.common.utils import Depends, DependsModel
 from src.core.celery import celery
 from src.core.interceptors.auth_interceptors import AuthBearer
 
@@ -34,17 +34,20 @@ def get_text():
     return "Hello, world!"
 
 
-class TokenResponse(BaseModel):
+class TokenResponse(Schema):
     token: Optional[str]
 
 
-@api.get("/bearer", response=TokenResponse, include_in_schema=False)
+depends_instance = Depends(get_text)
+
+
+@api.get("/bearer", response=TokenResponse)
 def bearer(
     request,
-    token=Depends(get_text),
+    token=DependsModel(depends=depends_instance),
 ):
     if token:
-        return {"token": token}
+        return TokenResponse(token=token)
 
 
 urlpatterns = [

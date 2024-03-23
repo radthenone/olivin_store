@@ -3,7 +3,7 @@ from typing import Any, Callable
 
 from dependency_injector import providers
 from ninja import Schema
-from pydantic import BaseModel
+from pydantic import Extra
 
 
 class Depends:
@@ -18,10 +18,17 @@ class Depends:
         return DependsModel(depends=self).to_json()
 
 
-class DependsModel(BaseModel):
-    depends: Any
+class DependsModel(Schema):
+    depends: Depends
+
+    def __new__(cls, depends: Depends):
+        cls.depends = depends
+        return super().__new__(cls)
 
     def to_json(self) -> str:
         function_name = self.depends.fn.__name__
         result = {function_name: self.depends()}
         return json.dumps(result)
+
+    class Config:
+        extra = Extra.forbid
