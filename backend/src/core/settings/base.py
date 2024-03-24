@@ -10,6 +10,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    "ninja_extra",
     "django_celery_beat",
 ]
 
