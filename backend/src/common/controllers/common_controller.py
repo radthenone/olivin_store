@@ -13,9 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 @api_controller(tags=["common"])
-class CommonRouter:
+class CommonController:
     @http_get("/")
     def get(self, request):
+        print(request.user)
+        print(request.auth)
         return JsonResponse({"message": "hello"})
 
     @http_post("/ping")

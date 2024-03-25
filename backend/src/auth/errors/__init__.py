@@ -4,6 +4,7 @@ from src.auth.errors.exceptions import (
     InvalidCredentials,
     InvalidToken,
     TokenExpired,
+    UnAuthorized,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "InvalidToken",
     "InvalidCredentials",
     "AuthorizationFailed",
+    "UnAuthorized",
 ]

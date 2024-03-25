@@ -7,13 +7,17 @@ import jwt
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.http import HttpRequest
+from jwt import InvalidTokenError
 from ninja.security import HttpBearer
+from ninja_extra import status
+from ninja_extra.exceptions import APIException
 
 from src.auth.errors import (
     AuthorizationFailed,
     InvalidCredentials,
     InvalidToken,
     TokenExpired,
+    UnAuthorized,
 )
 
 logger = logging.getLogger(__name__)
@@ -118,3 +122,11 @@ def get_token_from_request(request: HttpRequest) -> Optional[str]:
     if not authorization_header or scheme.lower() != "bearer":
         raise AuthorizationFailed
     return token
+
+
+class AuthBearer(HttpBearer):
+    def authenticate(self, request: HttpRequest, token: str) -> Optional[dict]:
+        decode_token = decode_jwt_token(token)
+        if decode_token:
+            return decode_token
+        return None

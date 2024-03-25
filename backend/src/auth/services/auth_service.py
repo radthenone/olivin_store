@@ -1,7 +1,6 @@
 from typing import Optional
 
 from django.contrib.auth.hashers import check_password
-from ninja.security import HttpBearer
 
 from src.common.responses import ORJSONResponse
 from src.users.errors import (
