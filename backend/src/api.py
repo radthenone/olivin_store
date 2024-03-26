@@ -3,6 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 from ninja.constants import NOT_SET
+from ninja.responses import Response
 from ninja_extra import NinjaExtraAPI, api_controller, route
 
 from src.auth.utils import AuthBearer
@@ -14,7 +15,7 @@ from src.common.controllers import CommonController
 class APIController:
     @route.get("/bearer", auth=AuthBearer())
     def bearer(self, request):
-        return {"token": request.auth}
+        return Response({"token": request.auth})
 
 
 api = NinjaExtraAPI()

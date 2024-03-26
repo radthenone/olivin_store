@@ -17,7 +17,6 @@ from src.auth.errors import (
     InvalidCredentials,
     InvalidToken,
     TokenExpired,
-    UnAuthorized,
 )
 
 logger = logging.getLogger(__name__)
@@ -126,7 +125,10 @@ def get_token_from_request(request: HttpRequest) -> Optional[str]:
 
 class AuthBearer(HttpBearer):
     def authenticate(self, request: HttpRequest, token: str) -> Optional[dict]:
-        decode_token = decode_jwt_token(token)
-        if decode_token:
-            return decode_token
-        return None
+        try:
+            decode_token = decode_jwt_token(token)
+            if decode_token:
+                return decode_token
+        except Exception as error:
+            logger.exception(error)
+            raise InvalidToken

@@ -1,30 +1,27 @@
 from ninja_extra import status
 from ninja_extra.exceptions import APIException
 
-from src.auth.errors.constants import StatusCodes
-from src.common.errors.exceptions import BasicHTTPException
-
 
 class UnAuthorized(APIException):
-    status_code = status.HTTP_401_UNAUTHORIZED
     message = "UnAuthorized"
+    status_code = status.HTTP_401_UNAUTHORIZED
 
 
-class TokenExpired(BasicHTTPException):
-    MESSAGE = "Token expired"
-    STATUS = StatusCodes.TOKEN_EXPIRED
+class TokenExpired(APIException):
+    default_detail = "Token expired"
+    status_code = status.HTTP_401_UNAUTHORIZED
 
 
-class InvalidToken(BasicHTTPException):
-    MESSAGE = "Invalid token"
-    STATUS = StatusCodes.PERMISSION_DENIED
+class InvalidToken(APIException):
+    default_detail = "Invalid token"
+    status_code = status.HTTP_401_UNAUTHORIZED
 
 
-class InvalidCredentials(BasicHTTPException):
-    MESSAGE = "Invalid credentials"
-    STATUS = StatusCodes.PERMISSION_DENIED
+class InvalidCredentials(APIException):
+    default_detail = "Invalid credentials"
+    status_code = status.HTTP_401_UNAUTHORIZED
 
 
-class AuthorizationFailed(BasicHTTPException):
-    MESSAGE = "Authorization failed"
-    STATUS = StatusCodes.PERMISSION_DENIED
+class AuthorizationFailed(APIException):
+    default_detail = "Authorization failed"
+    status_code = status.HTTP_401_UNAUTHORIZED
