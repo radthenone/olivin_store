@@ -1,13 +1,11 @@
-from src.users.errors.exceptions import (
+from src.users.errors.user_exception import (
     EmailAlreadyExists,
-    NotAuthenticated,
+    UserDoesNotExist,
     UsernameAlreadyExists,
-    UserNotFound,
 )
 
 __all__ = [
-    "NotAuthenticated",
-    "UserNotFound",
     "UsernameAlreadyExists",
     "EmailAlreadyExists",
+    "UserDoesNotExist",
 ]

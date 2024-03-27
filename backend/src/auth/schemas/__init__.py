@@ -1,11 +1,15 @@
 from src.auth.schemas.auth_schema import (
+    LoginSchema,
     PasswordsMatchSchema,
-    TokenSchema,
+    UserCreateFailedSchema,
     UserCreateSchema,
+    UserCreateSuccessSchema,
 )
 
 __all__ = [
-    "TokenSchema",
+    "LoginSchema",
     "UserCreateSchema",
     "PasswordsMatchSchema",
+    "UserCreateSuccessSchema",
+    "UserCreateFailedSchema",
 ]

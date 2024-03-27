@@ -1,5 +1,4 @@
-from src.auth.errors.constants import StatusCodes
-from src.auth.errors.exceptions import (
+from src.auth.errors.auth_exception import (
     AuthorizationFailed,
     InvalidCredentials,
     InvalidToken,
@@ -8,7 +7,6 @@ from src.auth.errors.exceptions import (
 )
 
 __all__ = [
-    "StatusCodes",
     "TokenExpired",
     "InvalidToken",
     "InvalidCredentials",

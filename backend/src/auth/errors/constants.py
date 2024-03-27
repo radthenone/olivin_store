@@ -1,3 +1,0 @@
-class StatusCodes:
-    PERMISSION_DENIED = 403
-    TOKEN_EXPIRED = 401

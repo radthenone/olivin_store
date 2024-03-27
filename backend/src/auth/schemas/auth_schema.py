@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from ninja import Schema
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -15,12 +16,13 @@ from src.users.validations import (
 )
 
 
-class TokenSchema(BaseModel):
+class LoginSchema(Schema):
     access_token: str
+    refresh_token: str
     token_type: str
 
 
-class PasswordsMatchSchema(BaseModel):
+class PasswordsMatchSchema(Schema):
     password: Annotated[str, BeforeValidator(validate_password)]
     rewrite_password: Annotated[str, BeforeValidator(validate_password)]
 
@@ -30,7 +32,7 @@ class PasswordsMatchSchema(BaseModel):
             return self
 
 
-class UserCreateSchema(BaseModel, PasswordsMatchSchema):
+class UserCreateSchema(Schema, PasswordsMatchSchema):
     username: Annotated[str, BeforeValidator(validate_username)]
     email: Annotated[str, BeforeValidator(validate_email)]
     first_name: str
@@ -77,6 +79,46 @@ class UserCreateSchema(BaseModel, PasswordsMatchSchema):
                 "email": "a@a.com",
                 "first_name": "first_name",
                 "last_name": "last_name",
+            },
+        }
+    )
+
+
+class UserCreateSuccessSchema(Schema):
+    message: str = "User created successfully"
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "required": ["message"],
+            "properties": {
+                "message": {
+                    "type": "string",
+                },
+            },
+            "description": "User create success schema",
+            "title": "User create success schema",
+            "example": {
+                "message": "User created successfully",
+            },
+        }
+    )
+
+
+class UserCreateFailedSchema(Schema):
+    message: str = "User creation failed"
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "required": ["message"],
+            "properties": {
+                "message": {
+                    "type": "string",
+                },
+            },
+            "description": "User create failed schema",
+            "title": "User create failed schema",
+            "example": {
+                "message": "User creation failed",
             },
         }
     )

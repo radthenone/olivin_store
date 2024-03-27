@@ -16,8 +16,6 @@ logger = logging.getLogger(__name__)
 class CommonController:
     @http_get("/")
     def get(self, request):
-        print(request.user)
-        print(request.auth)
         return JsonResponse({"message": "hello"})
 
     @http_post("/ping")
