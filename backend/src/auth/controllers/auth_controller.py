@@ -27,7 +27,12 @@ class AuthController:
     def register_view(self, user_create: UserCreateSchema):
         return self.service.register_user(user_create=user_create)
 
-    @http_post("/login", response={200: LoginSchema})
+    @http_post(
+        "/login",
+        response={
+            200: LoginSchema,
+        },
+    )
     def login_view(self, username: str, password: str):
         return self.service.login_user(username=username, password=password)
 

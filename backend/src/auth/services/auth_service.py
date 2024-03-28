@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import UUID
 
 from django.contrib.auth.hashers import check_password
 
@@ -69,7 +70,7 @@ class AuthService:
     ) -> Optional["ORJSONResponse"]:
         try:
             user = self.authorized_user(username, password)
-            token = encode_jwt_token(user)
+            token = encode_jwt_token(username=user.username, user_id=UUID(str(user.id)))
 
             return ORJSONResponse(
                 data=LoginSchema(**token).model_dump(),
