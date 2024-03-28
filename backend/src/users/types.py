@@ -1,6 +1,5 @@
-from typing import TYPE_CHECKING, TypeVar
+from typing import TypeVar
 
-if TYPE_CHECKING:
-    from src.users.models import User
+from django.contrib.auth.models import User
 
 UserType = TypeVar("UserType", bound=User)

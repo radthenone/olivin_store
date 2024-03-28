@@ -1,9 +1,11 @@
 import logging
+from typing import Optional
 from uuid import UUID
 
+from src.auth.schemas import UserCreateSchema
 from src.users.interfaces import IUserRepository
 from src.users.models import User
-from src.users.schemas import SuperUserCreateSchema, UserCreateSchema, UserUpdateSchema
+from src.users.schemas import SuperUserCreateSchema, UserUpdateSchema
 
 logger = logging.getLogger(__name__)
 
@@ -12,20 +14,29 @@ class UserRepository(IUserRepository):
     def get_user_by_id(
         self,
         user_id: UUID,
-    ) -> User:
-        return User.objects.get(id=user_id)
+    ) -> Optional[User]:
+        try:
+            return User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return None
 
     def get_user_by_email(
         self,
         email: str,
-    ) -> User:
-        return User.objects.get(email=email)
+    ) -> Optional[User]:
+        try:
+            return User.objects.get(email=email)
+        except User.DoesNotExist:
+            return None
 
     def get_user_by_username(
         self,
         username: str,
-    ) -> User:
-        return User.objects.get(username=username)
+    ) -> Optional[User]:
+        try:
+            return User.objects.get(username=username)
+        except User.DoesNotExist:
+            return None
 
     def create_user(
         self,
@@ -86,5 +97,10 @@ class UserRepository(IUserRepository):
         self,
         user_id: UUID,
     ) -> bool:
-        # TODO make later
-        pass
+        try:
+            User.objects.get(id=user_id).delete()
+            logger.info("User deleted successfully with id %s", user_id)
+        except Exception as error:
+            logger.error("Error while deleting user %s", error)
+            return False
+        return True

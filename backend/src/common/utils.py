@@ -1,34 +1,11 @@
-import json
-from typing import Any, Callable
+from typing import Callable
 
-from dependency_injector import providers
-from ninja import Schema
-from pydantic import Extra
+from injector import Binder, Module, noscope
 
 
-class Depends:
-    def __init__(self, fn: Callable = None):
-        self.fn = fn
-        self.provider = providers.Callable(fn)
+class Depends(Module):
+    def __init__(self, depends: Callable = None):
+        self.depends = depends
 
-    def __call__(self, *args, **kwargs):
-        return self.provider(*args, **kwargs)
-
-    def __repr__(self):
-        return DependsModel(depends=self).to_json()
-
-
-class DependsModel(Schema):
-    depends: Depends
-
-    def __new__(cls, depends: Depends):
-        cls.depends = depends
-        return super().__new__(cls)
-
-    def to_json(self) -> str:
-        function_name = self.depends.fn.__name__
-        result = {function_name: self.depends()}
-        return json.dumps(result)
-
-    class Config:
-        extra = Extra.forbid
+    def configure(self, binder: Binder):
+        binder.bind(Depends, to=self.depends, scope=noscope)

@@ -1,6 +1,7 @@
 from src.auth.schemas.auth_schema import (
     LoginSchema,
     PasswordsMatchSchema,
+    RefreshTokenSchema,
     UserCreateFailedSchema,
     UserCreateSchema,
     UserCreateSuccessSchema,
@@ -8,6 +9,7 @@ from src.auth.schemas.auth_schema import (
 
 __all__ = [
     "LoginSchema",
+    "RefreshTokenSchema",
     "UserCreateSchema",
     "PasswordsMatchSchema",
     "UserCreateSuccessSchema",

@@ -5,12 +5,14 @@ from django.contrib.auth.hashers import check_password
 from src.auth.errors import UnAuthorized
 from src.auth.schemas import (
     LoginSchema,
+    RefreshTokenSchema,
     UserCreateFailedSchema,
     UserCreateSchema,
     UserCreateSuccessSchema,
 )
-from src.auth.utils import encode_jwt_token
+from src.auth.utils import decode_jwt_token, encode_jwt_token
 from src.common.responses import ORJSONResponse
+from src.common.schemas import MessageSchema
 from src.users.errors import EmailAlreadyExists, UserDoesNotExist, UsernameAlreadyExists
 from src.users.interfaces import IUserRepository
 from src.users.types import UserType
@@ -33,7 +35,7 @@ class AuthService:
             raise UnAuthorized
         return user
 
-    def check_user(self, user: "UserType"):
+    def check_user(self, user):
         username = getattr(user, "username", None)
         email = getattr(user, "email", None)
 
@@ -47,7 +49,7 @@ class AuthService:
         self,
         user_create: "UserCreateSchema",
     ) -> Optional["ORJSONResponse"]:
-        self.check_user(user_create)
+        self.check_user(user=user_create)
         if self.user_repository.create_user(
             user_create=user_create,
         ):
@@ -75,16 +77,26 @@ class AuthService:
             )
         except UnAuthorized:
             return ORJSONResponse(
-                data=UserCreateFailedSchema().model_dump(),
+                data=MessageSchema(message="Invalid credentials").model_dump(),
                 status=401,
             )
 
+    @staticmethod
     def refresh_token(
-        self,
         refresh_token: str,
     ) -> Optional["ORJSONResponse"]:
         if not refresh_token:
             return ORJSONResponse(
-                {"message": "Refresh token is required"},
+                data=MessageSchema(message="Refresh token is required").model_dump(),
                 status=401,
             )
+        decoded_token = decode_jwt_token(token=refresh_token)
+        if decoded_token:
+            return ORJSONResponse(
+                data=RefreshTokenSchema(**decoded_token).model_dump(),
+                status=200,
+            )
+        return ORJSONResponse(
+            data=MessageSchema(message="Invalid refresh token").model_dump(),
+            status=401,
+        )

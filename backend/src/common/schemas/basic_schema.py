@@ -1,15 +1,16 @@
-from pydantic import BaseModel, ConfigDict
+from ninja.schema import Schema
+from pydantic import ConfigDict
 
 
-class CreatedAtSchema(BaseModel):
+class CreatedAtSchema(Schema):
     created_at: str
 
 
-class UpdatedAtSchema(BaseModel):
+class UpdatedAtSchema(Schema):
     updated_at: str
 
 
-class MessageSchema(BaseModel):
+class MessageSchema(Schema):
     message: str
 
     model_config = ConfigDict(

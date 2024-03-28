@@ -2,7 +2,6 @@ from typing import Annotated
 
 from ninja import Schema
 from pydantic import (
-    BaseModel,
     BeforeValidator,
     ConfigDict,
     model_validator,
@@ -22,6 +21,10 @@ class LoginSchema(Schema):
     token_type: str
 
 
+class RefreshTokenSchema(LoginSchema):
+    pass
+
+
 class PasswordsMatchSchema(Schema):
     password: Annotated[str, BeforeValidator(validate_password)]
     rewrite_password: Annotated[str, BeforeValidator(validate_password)]
@@ -32,7 +35,7 @@ class PasswordsMatchSchema(Schema):
             return self
 
 
-class UserCreateSchema(Schema, PasswordsMatchSchema):
+class UserCreateSchema(PasswordsMatchSchema):
     username: Annotated[str, BeforeValidator(validate_username)]
     email: Annotated[str, BeforeValidator(validate_email)]
     first_name: str
@@ -45,10 +48,12 @@ class UserCreateSchema(Schema, PasswordsMatchSchema):
                 "password": {
                     "type": "string",
                     "minLength": 8,
+                    "format": "password",
                 },
                 "rewrite_password": {
                     "type": "string",
                     "minLength": 8,
+                    "format": "password",
                 },
                 "username": {
                     "type": "string",
@@ -73,8 +78,8 @@ class UserCreateSchema(Schema, PasswordsMatchSchema):
             "description": "User create schema",
             "title": "User create schema",
             "example": {
-                "password": "password",
-                "rewrite_password": "password",
+                "password": "Password12345!",
+                "rewrite_password": "Password12345!",
                 "username": "username",
                 "email": "a@a.com",
                 "first_name": "first_name",

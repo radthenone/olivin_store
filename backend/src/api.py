@@ -6,6 +6,7 @@ from ninja.constants import NOT_SET
 from ninja.responses import Response
 from ninja_extra import NinjaExtraAPI, api_controller, route
 
+from src.auth.controllers import AuthController
 from src.auth.utils import AuthBearer
 from src.common import models, tasks  # noqa
 from src.common.controllers import CommonController
@@ -24,6 +25,7 @@ api.register_controllers(
     *[
         APIController,
         CommonController,
+        AuthController,
     ]
 )
 

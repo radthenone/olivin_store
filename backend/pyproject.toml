@@ -25,6 +25,7 @@ orjson = "^3.9.15"
 injector = "^0.21.0"
 dependency-injector = "^4.41.0"
 django-ninja-extra = "^0.20.4"
+bcrypt = "^4.1.2"
 
 
 [tool.poetry.group.dev.dependencies]

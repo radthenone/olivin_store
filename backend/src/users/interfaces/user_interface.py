@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Optional
 from uuid import UUID
 
-from src.users.schemas import SuperUserCreateSchema, UserCreateSchema, UserUpdateSchema
+from src.auth.schemas import UserCreateSchema
+from src.users.schemas import SuperUserCreateSchema, UserUpdateSchema
 from src.users.types import UserType
 
 
@@ -31,14 +32,14 @@ class IUserRepository(ABC):
     @abstractmethod
     def create_user(
         self,
-        user_create: UserCreateSchema,
+        user_create: "UserCreateSchema",
     ) -> bool:
         pass
 
     @abstractmethod
     def create_superuser(
         self,
-        user_super_create: SuperUserCreateSchema,
+        user_super_create: "SuperUserCreateSchema",
     ) -> bool:
         pass
 
@@ -46,7 +47,7 @@ class IUserRepository(ABC):
     def update_user(
         self,
         user_obj: "UserType",
-        user_update: UserUpdateSchema,
+        user_update: "UserUpdateSchema",
     ):
         pass
 
