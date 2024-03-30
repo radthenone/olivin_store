@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,14 +14,18 @@ export default defineConfig({
         find: 'components',
         replacement: '/src/components',
       },
+      {
+        find: 'pages',
+        replacement: '/src/pages',
+      },
     ],
   },
   server: {
     watch: {
-        usePolling: true,
+      usePolling: true,
     },
     host: '0.0.0.0',
     strictPort: true,
     port: 3000,
-},
-})
+  },
+});
