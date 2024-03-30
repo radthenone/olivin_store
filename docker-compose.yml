@@ -118,6 +118,8 @@ services:
       - "9000:9000"
       - "9001:9001"
     command: server /data --console-address ":9001"
+    env_file:
+      - ./.envs/dev/minio.env
     volumes:
       - minio_data:/data
     profiles: ["dev", "minio", "backend", "less-dev"]

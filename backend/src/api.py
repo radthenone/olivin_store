@@ -19,7 +19,9 @@ class APIController:
         return Response({"token": request.auth})
 
 
-api = NinjaExtraAPI()
+api = NinjaExtraAPI(
+    docs_url="/",
+)
 
 api.register_controllers(
     *[
@@ -31,7 +33,7 @@ api.register_controllers(
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", api.urls),
+    path("", api.urls),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -31,8 +31,8 @@ class LoginSchema(Schema):
                     "type": "string",
                 },
             },
-            "description": "Login schema",
-            "title": "Login schema",
+            "description": "LoginPage schema",
+            "title": "LoginPage schema",
             "example": {
                 "username": "username",
                 "password": "Password12345!",

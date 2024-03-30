@@ -16,7 +16,12 @@ from src.auth.services import AuthService
 from src.users.repositories import UserRepository
 
 
-@api_controller(auth=NOT_SET, permissions=[], tags=["auth"])
+@api_controller(
+    prefix_or_class="/auth",
+    auth=NOT_SET,
+    permissions=[],
+    tags=["auth"],
+)
 class AuthController:
     repository = UserRepository()
     service = AuthService(repository)

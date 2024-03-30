@@ -76,7 +76,7 @@ class AuthService:
     ) -> Optional["ORJSONResponse"]:
         try:
             user = self.authorized_user(username, password)
-            token = encode_jwt_token(username=user.username, user_id=UUID(str(user.id)))
+            token = encode_jwt_token(username=user.username, user_id=user.id)
 
             return ORJSONResponse(
                 data=LoginSchemaSuccess(**token).model_dump(),
@@ -100,7 +100,7 @@ class AuthService:
         if not user:
             raise UserDoesNotExist
 
-        token = encode_jwt_token(username=user.username, user_id=UUID(str(user.id)))
+        token = encode_jwt_token(username=user.username, user_id=user.id)
         if token:
             return ORJSONResponse(
                 data=RefreshTokenSchemaSuccess(**token).model_dump(),
