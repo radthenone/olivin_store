@@ -9,7 +9,7 @@ load_dotenv(PROJECT_DIR / ".envs" / "dev" / "django.env")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "test_secret_key")
 
-DEBUG = bool(os.getenv("DEBUG", "True"))
+DEBUG = bool(os.getenv("DEBUG", 1))
 
 ALLOWED_HOSTS = str(os.getenv("ALLOWED_HOSTS", "*")).split(",")
 
@@ -53,22 +53,16 @@ MEDIA_ROOT = str(BASE_DIR / "media")
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = "/media/"
 
-# # DJANGO-CORS-HEADERS
-# # ------------------------------------------------------------------------------
-# # https://github.com/adamchainz/django-cors-headers#setup
-# CORS_ALLOW_ALL_ORIGINS = False
-# CORS_ALLOW_CREDENTIALS = True
-# CORS_URLS_REGEX = r"^/api/.*$"
-# CORS_ORIGIN_WHITELIST = (
-#     "http://localhost:8000",
-#     "https://localhost:8000",
-#     "http://127.0.0.1:8000",
-#     "https://127.0.0.1:8000",
-#     "http://localhost:8080",
-#     "https://localhost:8080",
-#     "http://127.0.0.1:8080",
-#     "https://127.0.0.1:8080",
-# )
+# DJANGO-CORS-HEADERS
+# ------------------------------------------------------------------------------
+# https://github.com/adamchainz/django-cors-headers#setup
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_URLS_REGEX = r"^/api/.*$"
 
 # CACHES
 # ------------------------------------------------------------------------------

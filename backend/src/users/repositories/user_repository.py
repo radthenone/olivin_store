@@ -2,12 +2,15 @@ import logging
 from typing import Optional
 from uuid import UUID
 
+from django.contrib.auth import get_user_model
+
 from src.auth.schemas import UserCreateSchema
 from src.users.interfaces import IUserRepository
-from src.users.models import User
 from src.users.schemas import SuperUserCreateSchema, UserUpdateSchema
 
 logger = logging.getLogger(__name__)
+
+User = get_user_model()
 
 
 class UserRepository(IUserRepository):

@@ -25,3 +25,8 @@ class InvalidCredentials(APIException):
 class AuthorizationFailed(APIException):
     default_detail = "Authorization failed"
     status_code = status.HTTP_401_UNAUTHORIZED
+
+
+class RefreshTokenRequired(APIException):
+    default_detail = "Refresh token required"
+    status_code = status.HTTP_401_UNAUTHORIZED

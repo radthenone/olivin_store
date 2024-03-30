@@ -3,7 +3,11 @@ from ninja_extra import api_controller, http_post
 
 from src.auth.schemas import (
     LoginSchema,
+    LoginSchemaFailed,
+    LoginSchemaSuccess,
     RefreshTokenSchema,
+    RefreshTokenSchemaFailed,
+    RefreshTokenSchemaSuccess,
     UserCreateFailedSchema,
     UserCreateSchema,
     UserCreateSuccessSchema,
@@ -25,17 +29,31 @@ class AuthController:
         },
     )
     def register_view(self, user_create: UserCreateSchema):
-        return self.service.register_user(user_create=user_create)
+        return self.service.register_user(
+            user_create=user_create,
+        )
 
     @http_post(
         "/login",
         response={
-            200: LoginSchema,
+            200: LoginSchemaSuccess,
+            400: LoginSchemaFailed,
         },
     )
-    def login_view(self, username: str, password: str):
-        return self.service.login_user(username=username, password=password)
+    def login_view(self, login: LoginSchema):
+        return self.service.login_user(
+            username=login.username,
+            password=login.password,
+        )
 
-    @http_post("/refresh", response={200: RefreshTokenSchema})
-    def refresh_view(self, refresh_token: str):
-        return self.service.refresh_token(refresh_token=refresh_token)
+    @http_post(
+        "/refresh",
+        response={
+            200: RefreshTokenSchemaSuccess,
+            400: RefreshTokenSchemaFailed,
+        },
+    )
+    def refresh_view(self, token: RefreshTokenSchema):
+        return self.service.refresh_token(
+            refresh_token=token.refresh_token,
+        )

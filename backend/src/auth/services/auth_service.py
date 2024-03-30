@@ -3,18 +3,24 @@ from uuid import UUID
 
 from django.contrib.auth.hashers import check_password
 
-from src.auth.errors import UnAuthorized
+from src.auth.errors import RefreshTokenRequired, UnAuthorized
 from src.auth.schemas import (
-    LoginSchema,
-    RefreshTokenSchema,
+    LoginSchemaFailed,
+    LoginSchemaSuccess,
+    RefreshTokenSchemaFailed,
+    RefreshTokenSchemaSuccess,
     UserCreateFailedSchema,
     UserCreateSchema,
     UserCreateSuccessSchema,
 )
-from src.auth.utils import decode_jwt_token, encode_jwt_token
+from src.auth.utils import encode_jwt_token
 from src.common.responses import ORJSONResponse
-from src.common.schemas import MessageSchema
-from src.users.errors import EmailAlreadyExists, UserDoesNotExist, UsernameAlreadyExists
+from src.core.interceptors import get_user_id
+from src.users.errors import (
+    EmailAlreadyExists,
+    UserDoesNotExist,
+    UsernameAlreadyExists,
+)
 from src.users.interfaces import IUserRepository
 from src.users.types import UserType
 
@@ -73,31 +79,34 @@ class AuthService:
             token = encode_jwt_token(username=user.username, user_id=UUID(str(user.id)))
 
             return ORJSONResponse(
-                data=LoginSchema(**token).model_dump(),
+                data=LoginSchemaSuccess(**token).model_dump(),
                 status=200,
             )
         except UnAuthorized:
             return ORJSONResponse(
-                data=MessageSchema(message="Invalid credentials").model_dump(),
+                data=LoginSchemaFailed().model_dump(),
                 status=401,
             )
 
-    @staticmethod
     def refresh_token(
+        self,
         refresh_token: str,
     ) -> Optional["ORJSONResponse"]:
         if not refresh_token:
+            raise RefreshTokenRequired
+        user_id = get_user_id(get_token=refresh_token)
+        user = self.user_repository.get_user_by_id(user_id=user_id)
+
+        if not user:
+            raise UserDoesNotExist
+
+        token = encode_jwt_token(username=user.username, user_id=UUID(str(user.id)))
+        if token:
             return ORJSONResponse(
-                data=MessageSchema(message="Refresh token is required").model_dump(),
-                status=401,
-            )
-        decoded_token = decode_jwt_token(token=refresh_token)
-        if decoded_token:
-            return ORJSONResponse(
-                data=RefreshTokenSchema(**decoded_token).model_dump(),
+                data=RefreshTokenSchemaSuccess(**token).model_dump(),
                 status=200,
             )
         return ORJSONResponse(
-            data=MessageSchema(message="Invalid refresh token").model_dump(),
+            data=RefreshTokenSchemaFailed().model_dump(),
             status=401,
         )

@@ -2,19 +2,18 @@ import argparse
 import logging
 import os
 
-import django
-from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
-
-from src.users.repositories import UserRepository
-from src.users.schemas.user_schema import SuperUserCreateSchema
-from src.users.services import UserService
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "src.core.settings.base")
+import django  # noqa
+import warnings  # noqa
+
+warnings.filterwarnings("ignore", message=".*'src.users.commands.create_superuser'.*")
 django.setup()
 
-User = get_user_model()
+from django.core.exceptions import ObjectDoesNotExist  # noqa
 
+from src.users.repositories import UserRepository  # noqa
+from src.users.schemas.user_schema import SuperUserCreateSchema  # noqa
+from src.users.services import UserService  # noqa
 
 user_service = UserService(repository=UserRepository())
 
@@ -49,4 +48,5 @@ def create_superuser() -> None:
         logger.error("Superuser with email %s already exists", email)
 
 
-create_superuser()
+if __name__ == "__main__":
+    create_superuser()

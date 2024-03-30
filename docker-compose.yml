@@ -1,0 +1,145 @@
+version: "3.11"
+services:
+  db:
+    container_name: postgres-olivin
+    image: postgres:14.6
+    hostname: postgres
+    ports:
+      - "5432:5432"
+      - "5433:5432"
+    env_file:
+      - ./.envs/dev/postgres.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - "POSTGRES_HOST_AUTH_METHOD=trust"
+    restart: on-failure
+    profiles: ["dev", "postgres", "backend", "less-dev"]
+
+  redis:
+    image: redis
+    hostname: redis
+    container_name: redis-olivin
+    build:
+      context: ./backend
+      dockerfile: ./docker/redis/Dockerfile
+    env_file:
+      - ./.envs/dev/redis.env
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    profiles: ["dev", "redis", "backend", "less-dev"]
+
+  backend: &backend
+    container_name: django-olivin
+    build:
+      context: ./backend
+      dockerfile: ./docker/ninja/Dockerfile
+    privileged : true
+    stdin_open: true
+    tty: true
+    command:
+      - /django.sh
+    env_file:
+      - ./.envs/dev/django.env
+      - ./.envs/dev/postgres.env
+      - ./.envs/dev/redis.env
+    volumes:
+      - ./backend:/src:z
+    ports:
+      - "8000:8000"
+    depends_on: [db, redis, minio, mail]
+    profiles: ["dev", "backend"]
+
+  celery-beat:
+    <<: *backend
+    ports: []
+    command: /celery/beat.sh
+    container_name: celery-beat-olivin
+    volumes:
+      - ./backend:/src:z
+    env_file:
+      - ./.envs/dev/django.env
+      - ./.envs/dev/postgres.env
+      - ./.envs/dev/redis.env
+    depends_on: [db, redis, minio, mail]
+    profiles: ["dev", "only-celery", "backend", "less-dev"]
+    healthcheck:
+      test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
+      interval: "60s"
+      timeout: "3s"
+      start_period: "5s"
+      retries: 3
+
+  celery-worker:
+    <<: *backend
+    ports: []
+    command: /celery/worker.sh
+    container_name: celery-worker-olivin
+    volumes:
+      - ./backend:/src:z
+    env_file:
+      - ./.envs/dev/django.env
+      - ./.envs/dev/postgres.env
+      - ./.envs/dev/redis.env
+    depends_on: [db, redis, minio, mail]
+    profiles: ["dev", "only-celery", "backend", "less-dev"]
+
+  flower:
+    <<: *backend
+    ports:
+      - "5555:5555"
+    command: /celery/flower.sh
+    container_name: flower-olivin
+    volumes:
+      - ./backend:/src:z
+    env_file:
+      - ./.envs/dev/django.env
+      - ./.envs/dev/postgres.env
+      - ./.envs/dev/redis.env
+    depends_on: [db, redis, minio, mail]
+    profiles: ["dev", "only-celery", "backend", "less-dev"]
+
+  mail:
+    image: sj26/mailcatcher
+    container_name: mail-olivin
+    ports:
+      - "1080:1080" # port web
+      - "1025:1025" # port SMTP
+    volumes:
+      - mail_data:/data
+    profiles: ["dev", "mail", "backend", "less-dev"]
+
+  minio:
+    container_name: minio-olivin
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    profiles: ["dev", "minio", "backend", "less-dev"]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ./docker/Dockerfile
+    container_name: react-olivin
+    env_file:
+      - ./.envs/dev/react.env
+    stdin_open: true
+    tty: true
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    profiles: ["dev", "frontend"]
+
+volumes:
+  postgres_data:
+  redis_data:
+  mail_data:
+  minio_data:

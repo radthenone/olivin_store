@@ -7,6 +7,7 @@ from pydantic import (
     model_validator,
 )
 
+from src.common.schemas import MessageSchema
 from src.users.validations import (
     check_passwords_match,
     validate_email,
@@ -16,13 +17,50 @@ from src.users.validations import (
 
 
 class LoginSchema(Schema):
+    username: Annotated[str, BeforeValidator(validate_username)]
+    password: Annotated[str, BeforeValidator(validate_password)]
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "required": ["password", "username"],
+            "properties": {
+                "password": {
+                    "type": "string",
+                },
+                "username": {
+                    "type": "string",
+                },
+            },
+            "description": "Login schema",
+            "title": "Login schema",
+            "example": {
+                "username": "username",
+                "password": "Password12345!",
+            },
+        }
+    )
+
+
+class LoginSchemaSuccess(Schema):
     access_token: str
     refresh_token: str
     token_type: str
 
 
-class RefreshTokenSchema(LoginSchema):
+class LoginSchemaFailed(MessageSchema):
+    message: str = "Invalid credentials"
+
+
+class RefreshTokenSchema(Schema):
+    refresh_token: str
+
+
+class RefreshTokenSchemaSuccess(LoginSchemaSuccess):
     pass
+
+
+class RefreshTokenSchemaFailed(MessageSchema):
+    message: str = "Invalid refresh token"
 
 
 class PasswordsMatchSchema(Schema):

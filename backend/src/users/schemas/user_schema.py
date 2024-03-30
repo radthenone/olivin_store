@@ -53,8 +53,8 @@ class UserUpdateSchema(Schema):
 
 
 class SuperUserCreateSchema(Schema):
-    password: Annotated[str, BeforeValidator(validate_password)]
-    email: Annotated[str, BeforeValidator(validate_email)]
+    password: str
+    email: str
     is_staff: bool = True
     is_superuser: bool = True
 
@@ -82,7 +82,7 @@ class SuperUserCreateSchema(Schema):
 
 
 class SuperUserCreateSuccessSchema(MessageSchema):
-    message: str
+    message: str = "Superuser created successfully"
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -96,7 +96,7 @@ class SuperUserCreateSuccessSchema(MessageSchema):
 
 
 class SuperUserCreateErrorSchema(MessageSchema):
-    message: str
+    message: str = "Error while creating superuser"
 
     model_config = ConfigDict(
         json_schema_extra={
