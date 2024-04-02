@@ -14,3 +14,5 @@ The initial assumption is that the project is to have:
 - payload with preorder
 - product management
 - event management (promotions temporarily change the prices of selected event products)
+- add react dark - light mode
+- react calendar to chose delivery time
