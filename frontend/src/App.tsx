@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   Route,
   createBrowserRouter,
@@ -9,20 +8,12 @@ import HomePage from './pages/HomePage/HomePage';
 import Header from './components/nav/Header';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
-import { ConfigProvider, theme } from 'antd';
 
 const App = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  const { defaultAlgorithm, darkAlgorithm } = theme;
-
-  const toggleDarkMode = () => {
-    setIsDarkMode((previousValue) => !previousValue);
-  };
 
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route path="/" element={<Header toggleDarkMode={toggleDarkMode} isDarkMode={isDarkMode} />} >
+      <Route path="/" element={<Header />} >
         <Route index element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -31,9 +22,9 @@ const App = () => {
   );
 
   return (
-    <ConfigProvider theme={{ algorithm: isDarkMode ? darkAlgorithm : defaultAlgorithm }}>
-      <RouterProvider router={router} />
-    </ConfigProvider>
+    <RouterProvider router={router} />
+    // <ConfigProvider theme={{ algorithm: isDarkMode ? darkAlgorithm : defaultAlgorithm }}>
+    // </ConfigProvider>
   );
 };
 

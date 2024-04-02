@@ -1,18 +1,13 @@
 import { Button } from 'antd';
 import { SunOutlined, MoonOutlined} from '@ant-design/icons';
+import { useTheme } from 'hooks/useTheme';
 
-interface ButtonLightDarkProps {
-  readonly toggleDarkMode: () => void;
-  readonly isDarkMode: boolean;
-}
 
-function ButtonLightDark({ toggleDarkMode, isDarkMode }: ButtonLightDarkProps) {
+function ButtonLightDark() {
+  const { theme, toggleTheme } = useTheme();
 
-  const handleClick = () => {
-    toggleDarkMode();
-  };
   return (
-    <Button onClick={handleClick} icon={isDarkMode ? <SunOutlined /> : <MoonOutlined />} />
+      <Button onClick={toggleTheme} icon={theme === 'light' ? <SunOutlined /> : <MoonOutlined />} />
   );
 }
 
