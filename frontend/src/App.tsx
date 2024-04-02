@@ -23,8 +23,6 @@ const App = () => {
 
   return (
     <RouterProvider router={router} />
-    // <ConfigProvider theme={{ algorithm: isDarkMode ? darkAlgorithm : defaultAlgorithm }}>
-    // </ConfigProvider>
   );
 };
 
