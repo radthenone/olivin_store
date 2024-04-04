@@ -14,7 +14,7 @@ const Header = () => {
   };
 
   return (
-    <ThemeProvider> {/* Wrap with ThemeProvider */}
+    <ThemeProvider>
       <>
         <Menu onClick={({ key }) => onClick(key)} selectedKeys={[current]} mode="horizontal">
           <Menu.Item key="home-key" icon={<HomeTwoTone />}>
