@@ -1,4 +1,4 @@
-.python-version
+../.python-version
 poetry.lock
 staticfiles
 logs

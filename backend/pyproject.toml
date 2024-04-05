@@ -1,46 +1,3 @@
-[tool.poetry]
-name = "olivin-store"
-version = "0.1.0"
-description = ""
-authors = ["radthenone <krzyzak.codes@gmail.com>"]
-license = "MIT"
-readme = "README.md"
-packages = [{include = "olivin_store"}]
-
-[tool.poetry.dependencies]
-python = "^3.11"
-ruff = "^0.3.0"
-django-ninja = "^1.1.0"
-uvicorn = "^0.27.1"
-python-dotenv = "^1.0.1"
-psycopg2-binary = "^2.9.9"
-django-cors-headers = "^4.3.1"
-django-extensions = "^3.2.3"
-django-redis = "^5.4.0"
-celery = "^5.3.6"
-flower = "^2.0.1"
-django-celery-beat = "^2.6.0"
-pyjwt = "^2.8.0"
-orjson = "^3.9.15"
-injector = "^0.21.0"
-dependency-injector = "^4.41.0"
-django-ninja-extra = "^0.20.4"
-bcrypt = "^4.1.2"
-
-
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.3.0"
-factory-boy = "^3.3.0"
-pytest = "^8.0.2"
-pytest-django = "^4.8.0"
-pytest-mock = "^3.12.0"
-python-json-logger = "^2.0.7"
-werkzeug = "^3.0.1"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.ruff]
 exclude = [
     ".bzr",
@@ -73,7 +30,7 @@ exclude = [
 ]
 line-length = 88
 indent-width = 4
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = [
@@ -81,18 +38,39 @@ select = [
     "E7",
     "E9",
     "F",
-    "F",
-    "I",
-    "W505",
-    "PT018",
-    "SIM101",
-    "SIM114",
-    "PGH004",
-    "PLE1142",
-    "RUF100",
-    "F404",
-    "TCH",
-    "F403",
+    "N",
+    "UP",
+    "YTT",
+    "S",
+    "BLE",
+    "FBT",
+    "B",
+    "A",
+    "C4",
+    "DTZ",
+    "T10",
+    "DJ",
+    "EM",
+    "G",
+    "INP",
+    "PIE",
+    "T20",
+    "PT",
+    "Q",
+    "RSE",
+    "RET",
+    "SLF",
+    "SLOT",
+    "SIM",
+    "TID",
+    "INT",
+    "PTH",
+    "ERA",
+    "TRY",
+    "PERF",
+    "FURB",
+    "LOG",
+    "RUF",
 ]
 ignore = []
 fixable = ["ALL"]
@@ -106,3 +84,9 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 docstring-code-format = false
 docstring-code-line-length = "dynamic"
+
+[tool.ruff.lint.per-file-ignores]
+"*/admin.py" = ["RUF012"]
+"*/migrations/*.py" = ["RUF012"]
+"*/tests.py" = ["S101"]
+"*/test_*.py" = ["S101"]

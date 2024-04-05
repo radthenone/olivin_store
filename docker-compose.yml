@@ -14,6 +14,16 @@ services:
     environment:
       - "POSTGRES_HOST_AUTH_METHOD=trust"
     restart: on-failure
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    init: true
     profiles: ["dev", "postgres", "backend", "less-dev"]
 
   redis:
@@ -115,8 +125,8 @@ services:
     container_name: minio-olivin
     image: minio/minio:latest
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:9000" # port web
+      - "9001:9001" # port console
     command: server /data --console-address ":9001"
     env_file:
       - ./.envs/dev/minio.env
