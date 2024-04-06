@@ -11,11 +11,9 @@ os.environ.setdefault(
 
 def create_celery():
     celery_app = Celery(
-        f"{settings}",
-        broker=settings.CELERY_BROKER_URL,
-        backend=settings.CELERY_RESULT_BACKEND,
+        "django.conf:settings",
     )
-    celery_app.config_from_object(settings, namespace="CELERY")
+    celery_app.config_from_object("django.conf:settings", namespace="CELERY")
     celery_app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
     return celery_app

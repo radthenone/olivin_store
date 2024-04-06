@@ -1,5 +1,4 @@
 import orjson
-from ninja import NinjaAPI
 from ninja.renderers import BaseRenderer
 
 

@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
-from src.auth.schemas import UserCreateSchema
-from src.users.schemas import SuperUserCreateSchema, UserUpdateSchema
-from src.users.types import UserType
+if TYPE_CHECKING:
+    from src.auth.schemas import UserCreateSchema
+    from src.users.schemas import SuperUserCreateSchema, UserUpdateSchema
+    from src.users.types import UserType
 
 
 class IUserRepository(ABC):

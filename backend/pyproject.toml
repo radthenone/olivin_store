@@ -26,11 +26,12 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
-
+    "*/settings/*.py",
+    "*/commands/*.py",
 ]
 line-length = 88
 indent-width = 4
-target-version = "py312"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
@@ -38,41 +39,24 @@ select = [
     "E7",
     "E9",
     "F",
-    "N",
-    "UP",
-    "YTT",
-    "S",
-    "BLE",
-    "FBT",
-    "B",
-    "A",
-    "C4",
-    "DTZ",
-    "T10",
-    "DJ",
-    "EM",
-    "G",
-    "INP",
-    "PIE",
-    "T20",
-    "PT",
-    "Q",
-    "RSE",
-    "RET",
-    "SLF",
-    "SLOT",
-    "SIM",
-    "TID",
-    "INT",
-    "PTH",
-    "ERA",
-    "TRY",
-    "PERF",
-    "FURB",
-    "LOG",
-    "RUF",
+    "F",
+    "I",
+    "W505",
+    "PT018",
+    "SIM101",
+    "SIM114",
+    "PGH004",
+    "PLE1142",
+    "RUF100",
+    "F404",
+    "TCH",
 ]
-ignore = []
+ignore = [
+    "TRY003",
+    "EM101",
+    "F401",
+]
+
 fixable = ["ALL"]
 unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"

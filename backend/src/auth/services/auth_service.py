@@ -1,5 +1,4 @@
-from typing import Optional
-from uuid import UUID
+from typing import TYPE_CHECKING, Optional
 
 from django.contrib.auth.hashers import check_password
 
@@ -21,8 +20,10 @@ from src.users.errors import (
     UserDoesNotExist,
     UsernameAlreadyExists,
 )
-from src.users.interfaces import IUserRepository
-from src.users.types import UserType
+
+if TYPE_CHECKING:
+    from src.users.interfaces import IUserRepository
+    from src.users.types import UserType
 
 
 class AuthService:

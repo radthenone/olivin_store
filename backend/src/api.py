@@ -8,7 +8,7 @@ from ninja_extra import NinjaExtraAPI, api_controller, route
 
 from src.auth.controllers import AuthController
 from src.auth.utils import AuthBearer
-from src.common import models, tasks  # noqa
+from src.common import models, tasks  # F401
 from src.common.controllers import CommonController
 
 

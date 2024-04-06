@@ -1,7 +1,7 @@
 from typing import Optional
 
 from src.common.responses import ORJSONResponse
-from src.users.errors import EmailAlreadyExists, UsernameAlreadyExists
+from src.users.errors import EmailAlreadyExists
 from src.users.schemas import (
     SuperUserCreateErrorSchema,
     SuperUserCreateSchema,

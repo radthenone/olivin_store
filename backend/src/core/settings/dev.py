@@ -35,21 +35,16 @@ DATABASES["default"]["ATOMIC_REQUESTS"] = True
 # STATIC
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-STATIC_ROOT = str(BASE_DIR / "staticfiles")
+STATIC_ROOT = BASE_DIR / "staticfiles"
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "/static/"
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = [str(BASE_DIR / "static")]
-# https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
-STATICFILES_FINDERS = [
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-]
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # MEDIA
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-root
-MEDIA_ROOT = str(BASE_DIR / "media")
+MEDIA_ROOT = BASE_DIR / "media"
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = "/media/"
 
@@ -125,17 +120,12 @@ if USE_TZ:
     # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-timezone
     CELERY_TIMEZONE = TIME_ZONE
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-broker_url
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BROKER_URL = REDIS_URL
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_backend
 CELERY_RESULT_BACKEND = REDIS_URL
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-extended
 CELERY_RESULT_EXTENDED = True
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-accept_content
-CELERY_ACCEPT_CONTENT = ["json"]
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-task_serializer
-CELERY_TASK_SERIALIZER = "json"
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_serializer
-CELERY_RESULT_SERIALIZER = "json"
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-time-limit
 CELERY_TASK_TIME_LIMIT = 5 * 60
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-soft-time-limit
@@ -164,3 +154,14 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", False)
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
 REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 180)
+
+# STORAGES
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
