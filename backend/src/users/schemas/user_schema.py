@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from ninja.schema import Schema
 from pydantic import (
+    BaseModel,
     BeforeValidator,
     ConfigDict,
 )
@@ -17,7 +17,7 @@ from src.users.validations import (
 )
 
 
-class UserUpdateSchema(Schema):
+class UserUpdateSchema(BaseModel):
     username: Annotated[str, BeforeValidator(validate_username)]
     first_name: str
     last_name: str
@@ -52,7 +52,7 @@ class UserUpdateSchema(Schema):
     )
 
 
-class SuperUserCreateSchema(Schema):
+class SuperUserCreateSchema(BaseModel):
     password: str
     email: str
     is_staff: bool = True
@@ -139,7 +139,7 @@ class PasswordsChangeSchema(PasswordsMatchSchema):
     )
 
 
-class EmailChangeSchema(Schema):
+class EmailChangeSchema(BaseModel):
     new_email: Annotated[str, BeforeValidator(validate_email)]
     old_email: Annotated[str, BeforeValidator(validate_email)]
     password: Annotated[str, BeforeValidator(validate_password)]

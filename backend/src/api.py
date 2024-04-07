@@ -10,6 +10,7 @@ from src.auth.controllers import AuthController
 from src.auth.utils import AuthBearer
 from src.common import models, tasks  # F401
 from src.common.controllers import CommonController
+from src.users.controllers import UserController
 
 
 @api_controller(auth=NOT_SET, permissions=[], tags=[])
@@ -28,6 +29,7 @@ api.register_controllers(
         APIController,
         CommonController,
         AuthController,
+        UserController,
     ]
 )
 

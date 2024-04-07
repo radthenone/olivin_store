@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from ninja import Schema
 from pydantic import (
+    BaseModel,
     BeforeValidator,
     ConfigDict,
     model_validator,
@@ -16,7 +16,7 @@ from src.users.validations import (
 )
 
 
-class LoginSchema(Schema):
+class LoginSchema(BaseModel):
     username: Annotated[str, BeforeValidator(validate_username)]
     password: Annotated[str, BeforeValidator(validate_password)]
 
@@ -41,7 +41,7 @@ class LoginSchema(Schema):
     )
 
 
-class LoginSchemaSuccess(Schema):
+class LoginSchemaSuccess(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str
@@ -51,7 +51,7 @@ class LoginSchemaFailed(MessageSchema):
     message: str = "Invalid credentials"
 
 
-class RefreshTokenSchema(Schema):
+class RefreshTokenSchema(BaseModel):
     refresh_token: str
 
 
@@ -63,7 +63,7 @@ class RefreshTokenSchemaFailed(MessageSchema):
     message: str = "Invalid refresh token"
 
 
-class PasswordsMatchSchema(Schema):
+class PasswordsMatchSchema(BaseModel):
     password: Annotated[str, BeforeValidator(validate_password)]
     rewrite_password: Annotated[str, BeforeValidator(validate_password)]
 
@@ -127,7 +127,7 @@ class UserCreateSchema(PasswordsMatchSchema):
     )
 
 
-class UserCreateSuccessSchema(Schema):
+class UserCreateSuccessSchema(BaseModel):
     message: str = "User created successfully"
 
     model_config = ConfigDict(
@@ -147,7 +147,7 @@ class UserCreateSuccessSchema(Schema):
     )
 
 
-class UserCreateFailedSchema(Schema):
+class UserCreateFailedSchema(BaseModel):
     message: str = "User creation failed"
 
     model_config = ConfigDict(
