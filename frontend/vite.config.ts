@@ -1,12 +1,12 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import tsconfigPaths from 'vite-tsconfig-paths'
-import dotenv from 'dotenv';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tsconfigPaths from "vite-tsconfig-paths";
+import dotenv from "dotenv";
 
-dotenv.config({ path: __dirname + '../../.envs/dev/react.env' });
+dotenv.config({ path: __dirname + "../../.envs/dev/react.env" });
 
-const hostVal = process.env.HOST ? process.env.HOST.toString() : '0.0.0.0'
-const portVal = process.env.PORT ? Number(process.env.PORT) : 3000
+const hostVal = process.env.HOST ? process.env.HOST.toString() : "0.0.0.0";
+const portVal = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -20,6 +20,6 @@ export default defineConfig({
     port: portVal,
   },
   define: {
-    'process.env': process.env
-  }
+    "process.env": process.env,
+  },
 });

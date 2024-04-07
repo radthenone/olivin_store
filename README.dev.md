@@ -8,7 +8,7 @@ poetry install
 ### run app
 ```bash
 cd backend
-poetry run python main.py 
+poetry run python main.py
 ```
 
 ### install docker project
