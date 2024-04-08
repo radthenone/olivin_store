@@ -16,6 +16,8 @@ celery==5.3.6
     # via
     #   django-celery-beat
     #   flower
+cfgv==3.4.0
+    # via pre-commit
 click==8.1.7
     # via
     #   celery
@@ -36,6 +38,8 @@ contextlib2==21.6.0
 cron-descriptor==1.4.3
     # via django-celery-beat
 dependency-injector==4.41.0
+distlib==0.3.8
+    # via virtualenv
 django==5.0.4
     # via
     #   django-celery-beat
@@ -56,16 +60,30 @@ django-pydantic-field==0.3.7
 django-redis==5.4.0
 django-timezone-field==6.1.0
     # via django-celery-beat
+dnspython==2.6.1
+    # via email-validator
+email-validator==2.1.1
+filelock==3.13.3
+    # via virtualenv
 flower==2.0.1
 h11==0.14.0
     # via uvicorn
 humanize==4.9.0
     # via flower
+identify==2.5.35
+    # via pre-commit
+idna==3.6
+    # via email-validator
 injector==0.21.0
     # via django-ninja-extra
 kombu==5.3.6
     # via celery
+nodeenv==1.8.0
+    # via pre-commit
 orjson==3.10.0
+platformdirs==4.2.0
+    # via virtualenv
+pre-commit==3.7.0
 prometheus-client==0.20.0
     # via flower
 prompt-toolkit==3.0.43
@@ -87,9 +105,13 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytz==2024.1
     # via flower
+pyyaml==6.0.1
+    # via pre-commit
 redis==5.0.3
     # via django-redis
 ruff==0.3.5
+setuptools==69.2.0
+    # via nodeenv
 six==1.16.0
     # via
     #   dependency-injector
@@ -114,5 +136,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
+virtualenv==20.25.1
+    # via pre-commit
 wcwidth==0.2.13
     # via prompt-toolkit
