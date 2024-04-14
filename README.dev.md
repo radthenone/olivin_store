@@ -10,3 +10,7 @@ docker-compose --profile dev up --build -d
 ```bash
 docker-compose --profile dev up -d
 ```
+
+```bash
+python manage.py runserver "0.0.0.0:8000"
+```

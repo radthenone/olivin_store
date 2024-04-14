@@ -31,3 +31,8 @@ uv pip sync requirements.txt
 # install all from requirements
 uv pip install -r requirements.txt
 ```
+
+```bash
+# sync config with VM
+uv pip sync requirements.txt
+```
