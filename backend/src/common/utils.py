@@ -1,11 +1,10 @@
-from typing import Callable
+from typing import Any
 
-from injector import Binder, Module, noscope
+from pydantic.main import create_model
 
 
-class Depends(Module):
-    def __init__(self, depends: Callable = None):
-        self.depends = depends
-
-    def configure(self, binder: Binder):
-        binder.bind(Depends, to=self.depends, scope=noscope)
+def pydantic_model(**kwargs: Any) -> Any:
+    annotations = {name: (type(value), ...) for name, value in kwargs.items()}
+    config = {"arbitrary_types_allowed": True}
+    model = create_model("DynamicModel", **annotations, __config__=config)
+    return model(**kwargs).model_dump()

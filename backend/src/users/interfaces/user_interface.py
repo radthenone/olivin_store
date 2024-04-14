@@ -4,7 +4,11 @@ from uuid import UUID
 
 if TYPE_CHECKING:
     from src.auth.schemas import UserCreateSchema
-    from src.users.schemas import SuperUserCreateSchema, UserUpdateSchema
+    from src.users.schemas import (
+        EmailUpdateSchema,
+        SuperUserCreateSchema,
+        UserUpdateSchema,
+    )
     from src.users.types import UserType
 
 

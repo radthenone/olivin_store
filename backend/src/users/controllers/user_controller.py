@@ -1,12 +1,15 @@
+from django.db import transaction
+from django.http import HttpRequest
 from ninja.constants import NOT_SET
-from ninja_extra import api_controller, http_post
+from ninja_extra import api_controller, http_get, http_post
+from ninja_extra.permissions.common import IsAuthenticated
 
-from src.common.utils import Depends
-from src.core.interceptors import get_user_id
+from src.core.interceptors import AuthBearer
 from src.users.repositories import UserRepository
 from src.users.schemas import (
-    EmailChangeSchema,
-    UserUpdateSchema,
+    EmailUpdateErrorSchema,
+    EmailUpdateSchema,
+    EmailUpdateSuccessSchema,
 )
 from src.users.services import UserService
 
@@ -22,13 +25,17 @@ class UserController:
     service = UserService(repository)
 
     @http_post(
-        "/email/change",
-        response={},
+        "/email/update",
+        auth=AuthBearer(),
+        permissions=[IsAuthenticated],
+        response={
+            200: EmailUpdateSuccessSchema,
+            400: EmailUpdateErrorSchema,
+        },
     )
-    def change_email(
-        self, email_change_schema: EmailChangeSchema, user_id: Depends(get_user_id)
-    ):
+    @transaction.atomic
+    def change_email(self, request: HttpRequest, email_update: EmailUpdateSchema):
         return self.service.change_email(
-            email_change_schema=email_change_schema,
-            user_id=user_id,
+            email_update=email_update,
+            user_id=request.user.pk,
         )

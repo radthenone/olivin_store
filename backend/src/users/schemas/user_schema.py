@@ -1,10 +1,11 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from pydantic import (
     BaseModel,
     BeforeValidator,
     ConfigDict,
 )
+from pydantic.fields import Field
 
 from src.auth.schemas import PasswordsMatchSchema
 from src.common.schemas import (
@@ -19,8 +20,9 @@ from src.users.validations import (
 
 class UserUpdateSchema(BaseModel):
     username: Annotated[str, BeforeValidator(validate_username)]
-    first_name: str
-    last_name: str
+    email: Annotated[str, BeforeValidator(validate_email)]
+    first_name: Optional[str]
+    last_name: Optional[str]
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -29,6 +31,10 @@ class UserUpdateSchema(BaseModel):
                     "type": "string",
                     "minLength": 3,
                     "maxLength": 16,
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email",
                 },
                 "first_name": {
                     "type": "string",
@@ -44,11 +50,12 @@ class UserUpdateSchema(BaseModel):
             "description": "User update schema",
             "title": "User update schema",
             "example": {
-                "username": "username",
-                "first_name": "first_name",
-                "last_name": "last_name",
+                "username": "new_username",
+                "email": "new@email.com",
+                "first_name": "new_first_name",
+                "last_name": "new_last_name",
             },
-        }
+        },
     )
 
 
@@ -109,7 +116,7 @@ class SuperUserCreateErrorSchema(MessageSchema):
     )
 
 
-class PasswordsChangeSchema(PasswordsMatchSchema):
+class PasswordUpdateSchema(PasswordsMatchSchema):
     old_password: Annotated[str, BeforeValidator(validate_password)]
 
     model_config = ConfigDict(
@@ -139,10 +146,12 @@ class PasswordsChangeSchema(PasswordsMatchSchema):
     )
 
 
-class EmailChangeSchema(BaseModel):
-    new_email: Annotated[str, BeforeValidator(validate_email)]
+class EmailUpdateSchema(BaseModel):
+    email: Annotated[str, BeforeValidator(validate_email)] = Field(
+        ..., alias="new_email"
+    )
     old_email: Annotated[str, BeforeValidator(validate_email)]
-    password: Annotated[str, BeforeValidator(validate_password)]
+    old_password: Annotated[str, BeforeValidator(validate_password)]
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -155,7 +164,7 @@ class EmailChangeSchema(BaseModel):
                     "type": "string",
                     "minLength": 8,
                 },
-                "password": {
+                "old_password": {
                     "type": "string",
                     "minLength": 8,
                 },
@@ -163,9 +172,43 @@ class EmailChangeSchema(BaseModel):
             "description": "Email change schema",
             "title": "Email change schema",
             "example": {
-                "new_email": "new_email",
-                "old_email": "old_email",
-                "password": "password",
+                "new_email": "b@b.com",
+                "old_email": "a@a.com",
+                "old_password": "Password12345!",
+            },
+        }
+    )
+
+
+class EmailUpdateErrorSchema(MessageSchema):
+    message: str = "Error while updating email"
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "Email update error schema",
+            "title": "Email update error schema",
+            "example": {
+                "message": "Error while updating email",
+            },
+        }
+    )
+
+
+class EmailUpdateSuccessSchema(BaseModel):
+    email: str
+    username: str
+    first_name: str
+    last_name: str
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "Email update success schema",
+            "title": "Email update success schema",
+            "example": {
+                "email": "a@a.com",
+                "username": "username",
+                "first_name": "first_name",
+                "last_name": "last_name",
             },
         }
     )

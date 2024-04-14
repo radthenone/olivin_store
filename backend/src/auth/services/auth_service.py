@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional
 
 from django.contrib.auth.hashers import check_password
 
-from src.auth.errors import RefreshTokenRequired, UnAuthorized
+from src.auth.errors import InvalidToken, RefreshTokenRequired, UnAuthorized
 from src.auth.schemas import (
     LoginSchemaFailed,
     LoginSchemaSuccess,
@@ -12,9 +12,8 @@ from src.auth.schemas import (
     UserCreateSchema,
     UserCreateSuccessSchema,
 )
-from src.auth.utils import encode_jwt_token
+from src.auth.utils import decode_jwt_token, encode_jwt_token
 from src.common.responses import ORJSONResponse
-from src.core.interceptors import get_user_id
 from src.users.errors import (
     EmailAlreadyExists,
     UserDoesNotExist,
@@ -95,7 +94,12 @@ class AuthService:
     ) -> Optional["ORJSONResponse"]:
         if not refresh_token:
             raise RefreshTokenRequired
-        user_id = get_user_id(get_token=refresh_token)
+
+        payload = decode_jwt_token(token=refresh_token)
+
+        if not payload:
+            raise InvalidToken
+        user_id = payload.get("user_id")
         user = self.user_repository.get_user_by_id(user_id=user_id)
 
         if not user:

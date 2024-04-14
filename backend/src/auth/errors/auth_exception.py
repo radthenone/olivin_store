@@ -17,6 +17,11 @@ class InvalidToken(APIException):
     status_code = status.HTTP_401_UNAUTHORIZED
 
 
+class UserNotFound(APIException):
+    default_detail = "User not found"
+    status_code = status.HTTP_401_UNAUTHORIZED
+
+
 class InvalidCredentials(APIException):
     default_detail = "Invalid credentials"
     status_code = status.HTTP_401_UNAUTHORIZED

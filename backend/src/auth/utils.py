@@ -1,16 +1,12 @@
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import Optional
 
 import jwt
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
-from django.http import HttpRequest
-from ninja.security import HttpBearer
 
 from src.auth.errors import (
-    AuthorizationFailed,
     InvalidCredentials,
     InvalidToken,
     TokenExpired,
@@ -110,22 +106,3 @@ def encode_jwt_token(username: str, user_id: uuid.UUID) -> dict:
     }
     logger.info("Tokens set: %s", data)
     return data
-
-
-def get_token_from_request(request: HttpRequest) -> Optional[str]:
-    authorization_header = request.headers.get("Authorization")
-    scheme, token = authorization_header.split(" ")
-    if not authorization_header or scheme.lower() != "bearer":
-        raise AuthorizationFailed
-    return token
-
-
-class AuthBearer(HttpBearer):
-    def authenticate(self, request: HttpRequest, token: str) -> Optional[dict]:
-        try:
-            decode_token = decode_jwt_token(token)
-            if decode_token:
-                return decode_token
-        except Exception as error:
-            logger.exception(error)
-            raise InvalidToken

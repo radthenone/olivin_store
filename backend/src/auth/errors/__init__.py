@@ -5,6 +5,7 @@ from src.auth.errors.auth_exception import (
     RefreshTokenRequired,
     TokenExpired,
     UnAuthorized,
+    UserNotFound,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "AuthorizationFailed",
     "UnAuthorized",
     "RefreshTokenRequired",
+    "UserNotFound",
 ]

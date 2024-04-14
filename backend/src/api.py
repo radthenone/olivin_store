@@ -7,9 +7,9 @@ from ninja.responses import Response
 from ninja_extra import NinjaExtraAPI, api_controller, route
 
 from src.auth.controllers import AuthController
-from src.auth.utils import AuthBearer
 from src.common import models, tasks  # F401
 from src.common.controllers import CommonController
+from src.core.interceptors import AuthBearer
 from src.users.controllers import UserController
 
 
@@ -17,7 +17,7 @@ from src.users.controllers import UserController
 class APIController:
     @route.get("/bearer", auth=AuthBearer())
     def bearer(self, request):
-        return Response({"token": request.auth})
+        return {"token": request.auth}
 
 
 api = NinjaExtraAPI(

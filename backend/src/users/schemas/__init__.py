@@ -1,5 +1,7 @@
 from src.users.schemas.user_schema import (
-    EmailChangeSchema,
+    EmailUpdateErrorSchema,
+    EmailUpdateSchema,
+    EmailUpdateSuccessSchema,
     SuperUserCreateErrorSchema,
     SuperUserCreateSchema,
     SuperUserCreateSuccessSchema,
@@ -11,5 +13,7 @@ __all__ = [
     "UserUpdateSchema",
     "SuperUserCreateSuccessSchema",
     "SuperUserCreateErrorSchema",
-    "EmailChangeSchema",
+    "EmailUpdateSchema",
+    "EmailUpdateErrorSchema",
+    "EmailUpdateSuccessSchema",
 ]

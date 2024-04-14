@@ -15,3 +15,8 @@ class UsernameAlreadyExists(APIException):
 class EmailAlreadyExists(APIException):
     default_detail = "Email already exists"
     status_code = status.HTTP_409_CONFLICT
+
+
+class WrongPassword(APIException):
+    default_detail = "Wrong password"
+    status_code = status.HTTP_401_UNAUTHORIZED
