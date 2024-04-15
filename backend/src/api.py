@@ -9,6 +9,7 @@ from ninja_extra import NinjaExtraAPI, api_controller, route
 from src.auth.controllers import AuthController
 from src.common import models, tasks  # F401
 from src.common.controllers import CommonController
+from src.core.adds import AppExtras
 from src.core.interceptors import AuthBearer
 from src.users.controllers import UserController
 
@@ -20,7 +21,10 @@ class APIController:
         return {"token": request.auth}
 
 
+extra = AppExtras()
+
 api = NinjaExtraAPI(
+    version=extra.VERSION,
     docs_url="/",
 )
 

@@ -78,6 +78,10 @@ injector==0.21.0
     # via django-ninja-extra
 kombu==5.3.6
     # via celery
+markdown-it-py==3.0.0
+    # via rich
+mdurl==0.1.2
+    # via markdown-it-py
 nodeenv==1.8.0
     # via pre-commit
 orjson==3.10.0
@@ -95,6 +99,8 @@ pydantic==2.6.4
     #   django-pydantic-field
 pydantic-core==2.16.3
     # via pydantic
+pygments==2.17.2
+    # via rich
 pyjwt==2.8.0
 python-crontab==3.0.0
     # via django-celery-beat
@@ -109,6 +115,7 @@ pyyaml==6.0.1
     # via pre-commit
 redis==5.0.3
     # via django-redis
+rich==13.7.1
 ruff==0.3.5
 setuptools==69.2.0
     # via nodeenv
