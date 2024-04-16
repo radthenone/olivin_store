@@ -64,55 +64,46 @@ CORS_URLS_REGEX = r"^/api/.*$"
 # https://docs.djangoproject.com/en/4.1/topics/cache/#redis
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_DB = os.getenv("REDIS_DB", 0)
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "some_redis_password")
-REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_URL,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": REDIS_PASSWORD,
-        },
-    }
-}
-
+REDIS_EXPIRE = os.getenv("REDIS_EXPIRE", 60 * 60 * 24)
+REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
 # LOGGING
 # ------------------------------------------------------------------------------
-# LOGGING = {
-#     "version": 1,
-#     "disable_existing_loggers": True,
-#     "formatters": {
-#         "json": {"()": "pythonjsonlogger.jsonlogger.JsonFormatter"},
-#     },
-#     "handlers": {
-#         "default": {
-#             "level": "INFO",
-#             "class": "logging.StreamHandler",
-#             "formatter": "json",
-#         },
-#         "console": {
-#             "class": "logging.StreamHandler",
-#             "formatter": "json",
-#         },
-#         "file": {
-#             "class": "logging.handlers.RotatingFileHandler",
-#             "filename": str(BASE_DIR / "logs" / "debug.log"),
-#             "maxBytes": 1024 * 1024,  # 1 MB
-#             "backupCount": 5,
-#         },
-#     },
-#     "loggers": {
-#         "": {"handlers": ["default"], "level": "INFO", "propagate": True},
-#         "polls": {"handlers": ["console"], "level": "INFO"},
-#         "django": {
-#             "handlers": ["file"],
-#             "level": "DEBUG",
-#             "propagate": True,
-#         },
-#     },
-# }
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {
+        "require_debug_true": {
+            "()": "django.utils.log.RequireDebugTrue",
+        },
+    },
+    "formatters": {
+        "rich": {"datefmt": "[%X]"},
+    },
+    "handlers": {
+        "console": {
+            "class": "rich.logging.RichHandler",
+            "filters": ["require_debug_true"],
+            "formatter": "rich",
+            "level": "DEBUG",
+            "rich_tracebacks": True,
+            "tracebacks_show_locals": True,
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": [],
+            "level": "INFO",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}
+
 
 # CELERY
 # ------------------------------------------------------------------------------
@@ -154,14 +145,3 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", False)
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
 REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 180)
-
-# STORAGES
-
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-    },
-}
