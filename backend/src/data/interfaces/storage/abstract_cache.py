@@ -2,13 +2,22 @@ from abc import ABC, abstractmethod
 
 
 class ICacheStorage(ABC):
-    def __init__(self, *args, **kwargs):
+    @abstractmethod
+    def set(self, key: str, value: str, ttl: int = None) -> bool:
         pass
 
     @abstractmethod
-    def connect(self, *args, **kwargs):
+    def get(self, key: str) -> str:
         pass
 
     @abstractmethod
-    def disconnect(self, *args, **kwargs):
+    def delete(self, key: str) -> bool:
+        pass
+
+    @abstractmethod
+    def flush(self) -> bool:
+        pass
+
+    @abstractmethod
+    def exists(self, key: str) -> bool:
         pass

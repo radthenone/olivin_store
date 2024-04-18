@@ -8,4 +8,4 @@ rm -f './celerybeat.pid'
 
 sleep 5
 
-celery -A src.core.celery beat -l info
+celery -A src.core.celery beat -l INFO
