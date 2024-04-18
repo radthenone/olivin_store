@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Optional
+from typing import Any, Optional
 
 from django.conf import settings
 from redis import Redis
@@ -25,29 +25,29 @@ class RedisStorage(ICacheStorage):
         password: str = settings.REDIS_PASSWORD,
         db: int = settings.REDIS_DB,
         decode_responses: bool = True,
-        *args,
-        **kwargs,
     ):
-        super().__init__(*args, **kwargs)
-        self.host = host
-        self.port = port
-        self.password = password
-        self.db = db
-        self.decode_responses = decode_responses
-        self.cache: Optional[Redis] = None
-        self.connect()
+        self.storage = Redis(
+            host=host,
+            port=port,
+            password=password,
+            db=db,
+            decode_responses=decode_responses,
+        )
 
-    def connect(self):
-        if not self.cache:
-            self.cache = Redis(
-                host=self.host,
-                port=self.port,
-                password=self.password,
-                db=self.db,
-                decode_responses=self.decode_responses,
-            )
+    def get(self, key: Any) -> Optional[Any]:
+        return self.storage.get(name=key)
 
-    def disconnect(self):
-        if self.cache:
-            self.cache.close()
-            self.cache = None
+    def set(self, key: Any, value: Any, expire: Optional[int] = None) -> None:
+        if not expire:
+            expire = self.CACHE_EXPIRE
+
+        self.storage.set(name=key, value=value, ex=expire)
+
+    def delete(self, key: Any) -> None:
+        self.storage.delete(*key)
+
+    def exists(self, key: Any) -> bool:
+        return self.storage.exists(*key)
+
+    def flush(self) -> None:
+        self.storage.flushdb()
