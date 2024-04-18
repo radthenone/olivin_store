@@ -1,0 +1,16 @@
+# Ignore everything
+frontend/node_modules
+.venv
+.envs
+commands
+.git
+.gitignore
+.pre-commit-config.yaml
+.python-version
+LICENSE
+*.md
+
+
+
+# Allow files and directories
+!/src

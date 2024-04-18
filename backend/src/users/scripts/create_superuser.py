@@ -1,19 +1,23 @@
 import argparse
 import logging
 import os
+import warnings
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "src.core.settings.base")
-import django  # noqa
-import warnings  # noqa
+import django
+from django.core.exceptions import ObjectDoesNotExist
+
+from src.users.repositories import UserRepository
+from src.users.schemas.user_schema import SuperUserCreateSchema
+from src.users.services import UserService
+
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE",
+    os.getenv("DJANGO_SETTINGS_MODULE", "src.core.settings.base"),
+)
 
 warnings.filterwarnings("ignore", message=".*'src.users.commands.create_superuser'.*")
 django.setup()
 
-from django.core.exceptions import ObjectDoesNotExist  # noqa
-
-from src.users.repositories import UserRepository  # noqa
-from src.users.schemas.user_schema import SuperUserCreateSchema  # noqa
-from src.users.services import UserService  # noqa
 
 user_service = UserService(repository=UserRepository())
 

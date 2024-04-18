@@ -19,6 +19,9 @@ INSTALLED_APPS += ("django_extensions",)
 
 DJANGO_ALLOW_ASYNC_UNSAFE = True
 
+DJANGO_HOST = os.getenv("DJANGO_HOST", "localhost")
+DJANGO_PORT = os.getenv("DJANGO_PORT", "8000")
+
 # DATABASE
 DATABASES = {
     "default": {
