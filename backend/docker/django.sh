@@ -6,7 +6,7 @@ set -o pipefail
 # exits if any of your variables is not set
 set -o nounset
 
-sleep 2
+export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"
 
 echo "========== DJANGO MIGRATIONS =========="
 python manage.py migrate
@@ -17,7 +17,6 @@ admin_exists() {
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.core.settings.base')
 django.setup()
 
 from django.contrib.auth import get_user_model

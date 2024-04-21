@@ -5,7 +5,7 @@ set -o nounset
 
 sleep 5
 
-export CELERY_BROKER_URL="redis://:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}/0"
+export CELERY_BROKER_URL="redis://:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}/${REDIS_DB}"
 
 worker_ready() {
     celery -A src.core.celery inspect ping

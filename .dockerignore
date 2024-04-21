@@ -1,6 +1,5 @@
 # Ignore everything
 frontend/node_modules
-.venv
 .envs
 commands
 .git
@@ -9,6 +8,7 @@ commands
 .python-version
 LICENSE
 *.md
+**/site-packages/*
 
 
 
