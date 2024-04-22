@@ -41,7 +41,6 @@ def get_token_payload(request: HttpRequest) -> Optional[dict]:
 
 
 class AuthBearer(HttpBearer):
-    user_model = get_user_model()
     repository = UserRepository()
 
     def get_user(self, request: HttpRequest, user_id: Any) -> None:

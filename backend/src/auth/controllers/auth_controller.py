@@ -1,3 +1,4 @@
+from django.db import transaction
 from ninja.constants import NOT_SET
 from ninja_extra import api_controller, http_post
 
@@ -33,6 +34,7 @@ class AuthController:
             400: UserCreateFailedSchema,
         },
     )
+    @transaction.atomic
     def register_view(self, user_create: UserCreateSchema):
         return self.service.register_user(
             user_create=user_create,

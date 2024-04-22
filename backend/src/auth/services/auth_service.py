@@ -1,3 +1,4 @@
+from logging import getLogger
 from typing import TYPE_CHECKING, Optional
 
 from django.contrib.auth.hashers import check_password
@@ -25,6 +26,9 @@ if TYPE_CHECKING:
     from src.users.types import UserType
 
 
+logger = getLogger(__name__)
+
+
 class AuthService:
     def __init__(self, repository: "IUserRepository", *args, **kwargs):
         self.user_repository = repository
@@ -35,14 +39,17 @@ class AuthService:
         username: str,
         password: str,
     ) -> Optional["UserType"]:
+        logger.debug("AuthService.authorized_user")
         user = self.user_repository.get_user_by_username(username=username)
         if user is None:
             raise UserDoesNotExist
         if not check_password(password, user.password):
             raise UnAuthorized
+        logger.info("User %s authorized", user.username)
         return user
 
     def check_user(self, user):
+        logger.debug("AuthService.check_user")
         username = getattr(user, "username", None)
         email = getattr(user, "email", None)
 
@@ -60,10 +67,13 @@ class AuthService:
         if self.user_repository.create_user(
             user_create=user_create,
         ):
+            logger.info("User %s created", user_create.username)
             return ORJSONResponse(
                 data=UserCreateSuccessSchema().model_dump(),
                 status=201,
             )
+
+        logger.info("User %s not created", user_create.username)
         return ORJSONResponse(
             data=UserCreateFailedSchema().model_dump(),
             status=400,
@@ -77,12 +87,14 @@ class AuthService:
         try:
             user = self.authorized_user(username, password)
             token = encode_jwt_token(username=user.username, user_id=user.id)
+            logger.info("User %s logged in", user.username)
 
             return ORJSONResponse(
                 data=LoginSchemaSuccess(**token).model_dump(),
                 status=200,
             )
         except UnAuthorized:
+            logger.info("User %s not logged in", username)
             return ORJSONResponse(
                 data=LoginSchemaFailed().model_dump(),
                 status=401,
@@ -107,10 +119,13 @@ class AuthService:
 
         token = encode_jwt_token(username=user.username, user_id=user.id)
         if token:
+            logger.info("User %s refreshed token", user.username)
             return ORJSONResponse(
                 data=RefreshTokenSchemaSuccess(**token).model_dump(),
                 status=200,
             )
+
+        logger.info("User %s not refreshed token", user.username)
         return ORJSONResponse(
             data=RefreshTokenSchemaFailed().model_dump(),
             status=401,
