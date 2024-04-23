@@ -17,3 +17,4 @@ The initial assumption is that the project is to have:
 - add react dark - light mode
 - react calendar to chose delivery time
 - add dependency injection using request.context.auth
+- pub/sub system
