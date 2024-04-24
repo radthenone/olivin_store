@@ -18,3 +18,4 @@ The initial assumption is that the project is to have:
 - react calendar to chose delivery time
 - add dependency injection using request.context.auth
 - pub/sub system
+- add period/contrib/solar tasks
