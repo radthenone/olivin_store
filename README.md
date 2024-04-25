@@ -19,3 +19,4 @@ The initial assumption is that the project is to have:
 - add dependency injection using request.context.auth
 - pub/sub system
 - add period/contrib/solar tasks
+- product rating
