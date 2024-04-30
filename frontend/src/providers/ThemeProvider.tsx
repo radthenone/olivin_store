@@ -1,6 +1,6 @@
 import { useState, ReactNode, useMemo } from "react";
 import { ConfigProvider, ThemeConfig, theme as AntdTheme } from "antd";
-import { ThemeContext } from "context/ThemeContext";
+import { ThemeContext } from "contexts/ThemeContext";
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const { defaultAlgorithm, darkAlgorithm } = AntdTheme;

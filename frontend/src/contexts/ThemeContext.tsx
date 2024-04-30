@@ -1,9 +1,5 @@
 import { createContext } from "react";
-
-interface ThemeContextProps {
-  theme: string;
-  toggleTheme: () => void;
-}
+import { ThemeContextProps } from "./ThemeContextInterface.tsx";
 
 export const ThemeContext = createContext<ThemeContextProps | undefined>(
   undefined,
