@@ -20,3 +20,8 @@ python manage.py runserver "0.0.0.0:8000"
 ```bash
 ./commands/dev/backend/makemigrations.sh
 ```
+
+### delete all migrations
+```bash
+./commands/dev/backend/delete_migrations.sh
+```
