@@ -13,9 +13,6 @@ class CacheHandler(ICacheHandler):
         return self.storage.get(key=key)
 
     def set_value(self, key: Any, value: Any, expire: Optional[int] = None) -> None:
-        if not expire:
-            expire = self.storage.CACHE_EXPIRE
-
         self.storage.set(key=key, value=value, expire=expire)
 
     def delete_value(self, key: Any) -> None:

@@ -31,13 +31,3 @@ class RedisStorage(ICacheStorage):
 
     def flush(self) -> None:
         self.storage.flushdb()
-
-
-if __name__ == "__main__":
-    r = RedisStorage()
-    r.set("key", "value", expire=5)
-    print(r.get("key"))
-    import time
-
-    time.sleep(5)
-    print(r.get("key"))
