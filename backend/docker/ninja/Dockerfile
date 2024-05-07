@@ -54,6 +54,9 @@ RUN sed -i 's/\r$//g' /celery/flower.sh && chmod +x /celery/flower.sh
 COPY ./docker/django.sh /django.sh
 RUN sed -i 's/\r$//g' /django.sh && chmod +x /django.sh
 
+COPY ./docker/scripts/*.sh /scripts/
+RUN sed -i 's/\r$//g' /scripts/*.sh && chmod +x /scripts/*.sh
+
 COPY ./docker/entrypoint.sh /entrypoint.sh
 RUN sed -i 's/\r$//g' /entrypoint.sh && chmod +x /entrypoint.sh
 

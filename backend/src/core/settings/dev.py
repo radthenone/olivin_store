@@ -125,13 +125,12 @@ CELERY_TASK_TIME_LIMIT = 5 * 60
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-soft-time-limit
 CELERY_TASK_SOFT_TIME_LIMIT = 60
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#beat-scheduler
-CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#beat-schedule
 CELERY_BEAT_SCHEDULE = {
-    # "clean_register_tokens": {
-    #     "task": "apps.users.tasks.clean_expired_register_tokens",
-    #     "schedule": crontab(minute="*/30"),
-    # }
+    "add-every-30-seconds": {
+        "task": "src.common.tasks.multiply_interval",
+        "schedule": 30.0,
+        "args": (10, 2),
+    },
 }
 
 # EMAIL

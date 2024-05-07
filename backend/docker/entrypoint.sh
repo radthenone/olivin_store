@@ -35,9 +35,10 @@ while True:
     time.sleep(1)
 END
 }
+
 until postgres_ready; do
-    >&2 echo 'Waiting for PostgreSQL to become available...'
-    sleep 1
+  >&2 echo "Waiting for PostgreSQL to become available..."
+  wait_for_port "${POSTGRES_HOST}" "${POSTGRES_PORT}"
 done
 >&2 echo 'PostgreSQL is available'
 
