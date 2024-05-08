@@ -10,10 +10,8 @@ from src.common import models, tasks  # unused import
 from src.common.controllers import CommonController
 from src.core.adds import ApiExtra
 from src.core.interceptors import AuthBearer
+from src.users import models, tasks  # unused import
 from src.users.controllers import UserController
-
-# from src.users.models import *
-# from src.users.tasks import *
 
 
 @api_controller(auth=NOT_SET, permissions=[], tags=[])
