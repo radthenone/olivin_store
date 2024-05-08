@@ -55,6 +55,7 @@ ignore = [
     "TRY003",
     "EM101",
     "F401",
+    "F811",
 ]
 
 fixable = ["ALL"]
