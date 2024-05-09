@@ -4,6 +4,7 @@ from functools import wraps
 from typing import Any, Callable, Optional, Union
 
 from celery.app import shared_task
+from celery.app.base import Celery
 from celery.canvas import signature
 from celery.local import PromiseProxy
 from celery.schedules import crontab, schedule, solar
@@ -15,9 +16,13 @@ logger = logging.getLogger(__name__)
 
 
 class TaskManager:
-    def __init__(self, queue: Optional[str] = None):
+    def __init__(
+        self,
+        celery: Celery = celery_app,
+        queue: Optional[str] = None,
+    ):
+        self.celery = celery
         self.queue = queue
-        self.celery = celery_app
         self.shared_task = shared_task
         self.signature = signature
 
