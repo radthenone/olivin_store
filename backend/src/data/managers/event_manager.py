@@ -3,14 +3,15 @@ import logging
 import time
 from typing import Optional
 
-from src.data.sessions import get_redis_session
+from src.data.clients import RedisClient
 
 logger = logging.getLogger(__name__)
 
 
 class EventManager:
-    def __init__(self):
-        self.redis = get_redis_session()
+    def __init__(self, client: RedisClient = RedisClient()):
+        self.client = client
+        self.redis = self.client.connect()
         self.pubsub = self.redis.pubsub()
 
     @staticmethod
