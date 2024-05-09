@@ -6,6 +6,7 @@ from src.core.config import PROJECT_DIR
 from src.core.settings.base import *  # noqa
 
 load_dotenv(PROJECT_DIR / ".envs" / "dev" / "django.env")
+load_dotenv(PROJECT_DIR / ".envs" / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "test_secret_key")
 

@@ -55,32 +55,14 @@ services:
       - ./.envs/dev/django.env
       - ./.envs/dev/postgres.env
       - ./.envs/dev/redis.env
+      - ./.envs/dev/mail.env
+      - ./.envs/.env
     volumes:
       - ./backend:/src:z
     ports:
       - "8000:8000"
-    depends_on: [db, redis, minio, mail]
+    depends_on: [db, redis, mail]
     profiles: ["dev", "backend"]
-
-#  celery-beat:
-#    <<: *backend
-#    ports: []
-#    command: /celery/beat.sh
-#    container_name: celery-beat-olivin
-#    volumes:
-#      - ./backend:/src:z
-#    env_file:
-#      - ./.envs/dev/django.env
-#      - ./.envs/dev/postgres.env
-#      - ./.envs/dev/redis.env
-#    depends_on: [db, redis, minio, mail]
-#    profiles: ["dev", "only-celery", "backend", "less-dev"]
-#    healthcheck:
-#      test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
-#      interval: "60s"
-#      timeout: "3s"
-#      start_period: "5s"
-#      retries: 3
 
   celery-beat:
     <<: *backend
@@ -93,7 +75,9 @@ services:
       - ./.envs/dev/django.env
       - ./.envs/dev/postgres.env
       - ./.envs/dev/redis.env
-    depends_on: [db, redis, minio, mail]
+      - ./.envs/dev/mail.env
+      - ./.envs/.env
+    depends_on: [db, redis, mail]
     profiles: ["dev", "only-celery", "backend", "less-dev"]
     healthcheck:
       test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
@@ -113,7 +97,9 @@ services:
       - ./.envs/dev/django.env
       - ./.envs/dev/postgres.env
       - ./.envs/dev/redis.env
-    depends_on: [db, redis, minio, mail]
+      - ./.envs/dev/mail.env
+      - ./.envs/.env
+    depends_on: [db, redis, mail]
     profiles: ["dev", "only-celery", "backend", "less-dev"]
     healthcheck:
       test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
@@ -134,7 +120,10 @@ services:
       - ./.envs/dev/django.env
       - ./.envs/dev/postgres.env
       - ./.envs/dev/redis.env
-    depends_on: [db, redis, minio, mail]
+      - ./.envs/dev/mail.env
+      - ./.envs/dev/flower.env
+      - ./.envs/.env
+    depends_on: [db, redis, mail]
     profiles: ["dev", "backend", "less-dev"]
 
   mail:
@@ -146,19 +135,6 @@ services:
     volumes:
       - mail_data:/data
     profiles: ["dev", "mail", "backend", "less-dev"]
-
-  minio:
-    container_name: minio-olivin
-    image: minio/minio:latest
-    ports:
-      - "9000:9000" # port web
-      - "9001:9001" # port console
-    command: server /data --console-address ":9001"
-    env_file:
-      - ./.envs/dev/minio.env
-    volumes:
-      - minio_data:/data
-    profiles: ["dev", "minio", "backend", "less-dev"]
 
   frontend:
     build:
@@ -180,4 +156,3 @@ volumes:
   postgres_data:
   redis_data:
   mail_data:
-  minio_data:
