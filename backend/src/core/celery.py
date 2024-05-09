@@ -1,8 +1,8 @@
 from django.conf import settings
 
-from src.data.sessions import get_celery_session
+from src.data.clients import CeleryClient
 
-celery = get_celery_session()
+celery = CeleryClient().connect()
 
 celery.conf.beat_schedule = {
     **settings.CELERY_BEAT_SCHEDULE,

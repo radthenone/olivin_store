@@ -31,8 +31,7 @@ class CeleryClient(IClient):
     def connect(self, **kwargs) -> Celery:
         if not self.client:
             self.client = Celery(
-                # main=self.main_settings,
-                main="src.core.settings.dev",
+                main=self.main_settings,
                 broker_url=self.broker_url,
                 result_backend=self.result_backend,
                 is_events=self.is_events,
@@ -75,6 +74,6 @@ class CeleryClient(IClient):
 
         return self.client
 
-    def disconnect(self, *args, **kwargs):
+    def disconnect(self, *args, **kwargs) -> None:
         if self.client:
             self.client.close()
