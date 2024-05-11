@@ -3,6 +3,8 @@ import uuid
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager
 from django.db import models
 
+from src.common.models import CreatedUpdatedDateModel
+
 # Create your models here.
 
 
@@ -25,3 +27,51 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+
+class Address(CreatedUpdatedDateModel):
+    id = models.AutoField(
+        primary_key=True,
+        editable=False,
+    )
+    city = models.CharField(
+        max_length=100,
+    )
+    street = models.CharField(
+        max_length=100,
+    )
+    house = models.CharField(
+        max_length=100,
+    )
+    flat = models.CharField(
+        max_length=100,
+    )
+
+
+class Profile(CreatedUpdatedDateModel):
+    id = models.AutoField(
+        primary_key=True,
+        editable=False,
+    )
+    birth_date = models.DateField(
+        null=True,
+        blank=True,
+    )
+    avatar = models.ImageField(
+        upload_to="avatars",
+        null=True,
+        blank=True,
+    )
+    # relationships
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="profile",
+    )
+    address = models.OneToOneField(
+        Address,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="profile",
+    )

@@ -1,10 +1,11 @@
 import inspect
+import os
 from pathlib import Path
 from typing import Any, Callable
 
 from pydantic.main import create_model
 
-from src.core.config import BASE_DIR
+from src.core.config import BASE_DIR, SRC_DIR
 
 
 def get_module_name(file_path: Path, src_dir: Path) -> str:
@@ -27,6 +28,30 @@ def get_full_function_path(
     full_function_path = f"{module_name}.{function_name}"
 
     return full_function_path
+
+
+def find_file_in_folder(start_folder, file_name):
+    for item in os.listdir(start_folder):
+        full_path = os.path.join(start_folder, item)
+
+        if os.path.isdir(full_path):
+            relative_path = find_file_in_folder(full_path, file_name)
+            if relative_path:
+                return os.path.relpath(relative_path, start=start_folder)
+        elif os.path.isfile(full_path) and item == file_name:
+            return full_path
+
+    return None
+
+
+def find_file_path_in_project(file_name):
+    file_path = find_file_in_folder(SRC_DIR, file_name)
+
+    if file_path:
+        file_path = os.path.join(SRC_DIR.name, str(file_path))
+        return file_path
+    else:
+        return None
 
 
 def pydantic_model(**kwargs: Any) -> Any:
