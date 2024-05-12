@@ -1,7 +1,18 @@
 import re
 
+import phonenumbers
 from django.core import validators
 from ninja.errors import HttpError
+
+
+def check_number_and_country_code(number: str, country_code: str) -> bool:
+    try:
+        parsed_number = phonenumbers.parse(number, country_code)
+        if not phonenumbers.is_valid_number(parsed_number):
+            raise HttpError(status_code=400, message="Invalid phone number")
+    except phonenumbers.phonenumberutil.NumberParseException:
+        raise HttpError(status_code=400, message="Invalid phone number")
+    return True
 
 
 def check_passwords_match(password: str, rewrite_password: str) -> bool:

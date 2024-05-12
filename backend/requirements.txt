@@ -85,6 +85,7 @@ mdurl==0.1.2
 nodeenv==1.8.0
     # via pre-commit
 orjson==3.10.0
+phonenumbers==8.13.36
 platformdirs==4.2.0
     # via virtualenv
 pre-commit==3.7.0

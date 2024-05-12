@@ -1,26 +1,26 @@
+import enum
+
 from django.db import models
 
 from src.common.models import CreatedUpdatedDateModel
-from src.delivers.models import Deliver
 from src.users.models import User
 
 # Create your models here.
 
 
-class OrderReturn(CreatedUpdatedDateModel):
-    id = models.AutoField(
-        primary_key=True,
-        editable=False,
-    )
-    reason = models.TextField(
-        null=True,
-        blank=True,
-    )
-    is_returned = models.BooleanField(
-        default=False,
-        null=True,
-        blank=True,
-    )
+class OrderStatus(enum.Enum):
+    CREATED = "CREATED"
+    ORDERED = "ORDERED"
+    PREPARED = "PREPARED"
+    SHIPPED = "SHIPPED"
+    CANCELED = "CANCELED"
+    DELIVERED = "DELIVERED"
+    RETURNED = "RETURNED"
+    DELETED = "DELETED"
+
+
+class PaymentMethod(enum.Enum):
+    pass
 
 
 class Order(CreatedUpdatedDateModel):
@@ -51,32 +51,42 @@ class Order(CreatedUpdatedDateModel):
         null=True,
         blank=True,
     )
-
-    is_paid = models.BooleanField(
+    return_relation = models.TextField(
+        null=True,
+        blank=True,
+    )
+    return_is_approved = models.BooleanField(
         default=False,
         null=True,
         blank=True,
     )
-    is_received = models.BooleanField(
-        default=False,
+    return_timeleft = models.IntegerField(
+        default=14,
         null=True,
         blank=True,
+    )
+
+    delivered_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    paid_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    return_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    status = models.CharField(
+        max_length=100,
+        choices=[(s.name, s.value) for s in OrderStatus],
+        default=OrderStatus.CREATED.value,
     )
     # relationships
-    order_return = models.OneToOneField(
-        OrderReturn,
-        on_delete=models.SET_NULL,
-        related_name="order",
-        null=True,
-    )
     user = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL,
-        related_name="orders",
-        null=True,
-    )
-    deliver = models.ForeignKey(
-        Deliver,
         on_delete=models.SET_NULL,
         related_name="orders",
         null=True,

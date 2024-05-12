@@ -2,6 +2,7 @@ from django.db import models
 
 from src.categories.models import Category
 from src.common.models import CreatedUpdatedDateModel
+from src.events.models import Event
 from src.users.models import User
 
 # Create your models here.
@@ -33,6 +34,12 @@ class Product(CreatedUpdatedDateModel):
         null=True,
         blank=True,
     )
+    event_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
     rating = (
         models.DecimalField(
             max_digits=7,
@@ -51,6 +58,11 @@ class Product(CreatedUpdatedDateModel):
         null=True,
         blank=True,
     )
+    is_event = models.BooleanField(
+        default=False,
+        null=True,
+        blank=True,
+    )
 
     # relationships
     user = models.ForeignKey(
@@ -66,6 +78,36 @@ class Product(CreatedUpdatedDateModel):
         null=True,
         related_name="products",
     )
+    events = models.ManyToManyField(
+        Event,
+        through="ProductEvent",
+        through_fields=("product", "event"),
+    )
 
     def __str__(self):
         return self.name
+
+
+class ProductEvent(models.Model):
+    id = models.AutoField(
+        primary_key=True,
+        editable=False,
+    )
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    event_product_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )

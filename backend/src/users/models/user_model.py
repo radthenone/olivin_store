@@ -40,10 +40,13 @@ class Address(CreatedUpdatedDateModel):
     street = models.CharField(
         max_length=100,
     )
-    house = models.CharField(
+    building_number = models.CharField(
         max_length=100,
     )
-    flat = models.CharField(
+    postal_code = models.CharField(
+        max_length=100,
+    )
+    country_code = models.CharField(
         max_length=100,
     )
 
@@ -62,13 +65,18 @@ class Profile(CreatedUpdatedDateModel):
         null=True,
         blank=True,
     )
+    phone = models.CharField(
+        max_length=15,
+        null=True,
+        blank=True,
+    )
     # relationships
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
         related_name="profile",
     )
-    address = models.OneToOneField(
+    address = models.ForeignKey(
         Address,
         on_delete=models.CASCADE,
         null=True,
