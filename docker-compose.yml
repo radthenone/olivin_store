@@ -56,12 +56,13 @@ services:
       - ./.envs/dev/postgres.env
       - ./.envs/dev/redis.env
       - ./.envs/dev/mail.env
+      - ./.envs/dev/minio.env
       - ./.envs/.env
     volumes:
       - ./backend:/src:z
     ports:
       - "8000:8000"
-    depends_on: [db, redis, mail]
+    depends_on: [db, redis, mail, minio]
     profiles: ["dev", "backend"]
 
   celery-beat:
@@ -76,8 +77,9 @@ services:
       - ./.envs/dev/postgres.env
       - ./.envs/dev/redis.env
       - ./.envs/dev/mail.env
+      - ./.envs/dev/minio.env
       - ./.envs/.env
-    depends_on: [db, redis, mail]
+    depends_on: [db, redis, mail, minio]
     profiles: ["dev", "only-celery", "backend", "less-dev"]
     healthcheck:
       test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
@@ -98,8 +100,9 @@ services:
       - ./.envs/dev/postgres.env
       - ./.envs/dev/redis.env
       - ./.envs/dev/mail.env
+      - ./.envs/dev/minio.env
       - ./.envs/.env
-    depends_on: [db, redis, mail]
+    depends_on: [db, redis, mail, minio]
     profiles: ["dev", "only-celery", "backend", "less-dev"]
     healthcheck:
       test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
@@ -122,8 +125,9 @@ services:
       - ./.envs/dev/redis.env
       - ./.envs/dev/mail.env
       - ./.envs/dev/flower.env
+      - ./.envs/dev/minio.env
       - ./.envs/.env
-    depends_on: [db, redis, mail]
+    depends_on: [db, redis, mail, minio]
     profiles: ["dev", "backend", "less-dev"]
 
   mail:
@@ -135,6 +139,19 @@ services:
     volumes:
       - mail_data:/data
     profiles: ["dev", "mail", "backend", "less-dev"]
+
+  minio:
+    container_name: minio-olivin
+    image: minio/minio:latest
+    ports:
+      - "9000:9000" # port web
+      - "9001:9001" # port console
+    command: server /data --console-address ":9001"
+    env_file:
+      - ./.envs/dev/minio.env
+    volumes:
+      - minio_data:/data
+    profiles: ["dev", "minio", "backend", "less-dev"]
 
   frontend:
     build:
@@ -156,3 +173,4 @@ volumes:
   postgres_data:
   redis_data:
   mail_data:
+  minio_data:
