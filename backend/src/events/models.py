@@ -1,10 +1,12 @@
+from datetime import datetime
+
 from django.db import models
 
 # Create your models here.
 
 
 class Event(models.Model):
-    id = models.AutoField(
+    _id = models.AutoField(
         primary_key=True,
         editable=False,
     )
@@ -23,5 +25,9 @@ class Event(models.Model):
         blank=True,
     )
 
+    def is_active(self):
+        now = datetime.now().date()
+        return self.start_date <= now <= self.end_date
+
     def __str__(self):
-        return self.name
+        return f"Event: {self.name}"

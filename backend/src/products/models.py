@@ -58,20 +58,8 @@ class Product(CreatedUpdatedDateModel):
         null=True,
         blank=True,
     )
-    is_event = models.BooleanField(
-        default=False,
-        null=True,
-        blank=True,
-    )
 
     # relationships
-    user = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=False,
-        related_name="products",
-    )
-
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -89,7 +77,7 @@ class Product(CreatedUpdatedDateModel):
 
 
 class ProductEvent(models.Model):
-    id = models.AutoField(
+    _id = models.AutoField(
         primary_key=True,
         editable=False,
     )

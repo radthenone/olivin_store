@@ -1,37 +1,16 @@
-import enum
-
 from django.db import models
 
 from src.common.models import CreatedUpdatedDateModel
+from src.orders.enums import OrderStatus, PaymentMethod
 from src.users.models import User
 
 # Create your models here.
 
 
-class OrderStatus(enum.Enum):
-    CREATED = "CREATED"
-    ORDERED = "ORDERED"
-    PREPARED = "PREPARED"
-    SHIPPED = "SHIPPED"
-    CANCELED = "CANCELED"
-    DELIVERED = "DELIVERED"
-    RETURNED = "RETURNED"
-    DELETED = "DELETED"
-
-
-class PaymentMethod(enum.Enum):
-    pass
-
-
 class Order(CreatedUpdatedDateModel):
-    id = models.AutoField(
+    _id = models.AutoField(
         primary_key=True,
         editable=False,
-    )
-    payment_method = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True,
     )
     tax_price = models.DecimalField(
         max_digits=10,
@@ -78,7 +57,12 @@ class Order(CreatedUpdatedDateModel):
         null=True,
         blank=True,
     )
-
+    payment_method = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        choices=[(p.name, p.value) for p in PaymentMethod],
+    )
     status = models.CharField(
         max_length=100,
         choices=[(s.name, s.value) for s in OrderStatus],

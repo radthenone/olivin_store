@@ -66,6 +66,9 @@ email-validator==2.1.1
 filelock==3.13.3
     # via virtualenv
 flower==2.0.1
+geographiclib==2.0
+    # via geopy
+geopy==2.4.1
 h11==0.14.0
     # via uvicorn
 humanize==4.9.0

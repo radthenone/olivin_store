@@ -16,6 +16,13 @@ THIRD_PARTY_APPS = [
 
 CREATE_APPS = [
     "src.users",
+    "src.common",
+    "src.events",
+    "src.products",
+    "src.orders",
+    "src.reviews",
+    "src.files",
+    "src.categories",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CREATE_APPS
