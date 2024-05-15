@@ -12,13 +12,13 @@ class Order(CreatedUpdatedDateModel):
         primary_key=True,
         editable=False,
     )
-    tax_price = models.DecimalField(
+    shipping_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,
         blank=True,
     )
-    shipping_price = models.DecimalField(
+    tax_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         null=True,

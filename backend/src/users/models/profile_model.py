@@ -1,7 +1,6 @@
 from django.db import models
 
 from src.common.models import CreatedUpdatedDateModel
-from src.users.models.address_model import Address
 from src.users.models.user_model import User
 
 
@@ -27,13 +26,6 @@ class Profile(CreatedUpdatedDateModel):
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
-        related_name="profile",
-    )
-    address = models.OneToOneField(
-        Address,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
         related_name="profile",
     )
 
