@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from dotenv import load_dotenv
 
@@ -10,7 +11,7 @@ load_dotenv(PROJECT_DIR / ".envs" / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "test_secret_key")
 
-DEBUG = bool(os.getenv("DEBUG", 1))
+DEBUG = bool(int(os.getenv("DEBUG", 1)))
 
 ALLOWED_HOSTS = str(os.getenv("ALLOWED_HOSTS", "*")).split(",")
 
@@ -35,22 +36,6 @@ DATABASES = {
     }
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
-
-# STATIC
-# ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-STATIC_ROOT = BASE_DIR / "staticfiles"
-# https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-STATIC_URL = "/static/"
-# https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = [BASE_DIR / "static"]
-
-# MEDIA
-# ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#media-root
-MEDIA_ROOT = BASE_DIR / "media"
-# https://docs.djangoproject.com/en/dev/ref/settings/#media-url
-MEDIA_URL = "/media/"
 
 # DJANGO-CORS-HEADERS
 # ------------------------------------------------------------------------------
@@ -133,6 +118,7 @@ CELERY_BEAT_SCHEDULE = {
         "args": (10, 2),
     },
 }
+CELERY_SETTINGS = "django.conf:settings"
 
 # EMAIL
 # ------------------------------------------------------------------------------
@@ -149,8 +135,33 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
 REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 180)
 
-# AMAZON S3
 
+# MEDIA
+# ------------------------------------------------------------------------------
+# https://docs.djangoproject.com/en/dev/ref/settings/#media-root
+MEDIA_ROOT = BASE_DIR / "media"
+# https://docs.djangoproject.com/en/dev/ref/settings/#media-url
+MEDIA_URL = "/media/"
+
+# STATIC
+# ------------------------------------------------------------------------------
+# AWS S3
+if not DEBUG:
+    AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY", "")
+    AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY", "")
+    AWS_REGION_NAME = os.getenv("AWS_REGION_NAME", "")
+# MINIO S3
+MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER", "minioadmin")
+MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
+MINIO_HOST = os.getenv("MINIO_HOST", "minio")
+MINIO_PORT = os.getenv("MINIO_PORT", "9000")
+# BUCKET S3 SETTINGS
+BUCKET_PREFIX = os.getenv("BUCKET_PREFIX", "olivin")
+BUCKET_KEY = os.getenv("BUCKET_KEY", "d2e3e393-9767-413b-b6d5-cf8fd6166de0")
+BUCKET_NAMES = [
+    f"{BUCKET_PREFIX}-{bucket_name}-{BUCKET_KEY}"
+    for bucket_name in os.getenv("BUCKET_NAMES", "avatars,images").split(",")
+]
 
 # DELIVERS
 

@@ -4,6 +4,10 @@ amqp==5.2.0
     # via kombu
 annotated-types==0.6.0
     # via pydantic
+argon2-cffi==23.1.0
+    # via minio
+argon2-cffi-bindings==21.2.0
+    # via argon2-cffi
 asgiref==3.8.1
     # via
     #   django
@@ -12,10 +16,19 @@ asgiref==3.8.1
 bcrypt==4.1.2
 billiard==4.2.0
     # via celery
+boto3==1.34.105
+botocore==1.34.105
+    # via
+    #   boto3
+    #   s3transfer
 celery==5.3.6
     # via
     #   django-celery-beat
     #   flower
+certifi==2024.2.2
+    # via minio
+cffi==1.16.0
+    # via argon2-cffi-bindings
 cfgv==3.4.0
     # via pre-commit
 click==8.1.7
@@ -79,12 +92,17 @@ idna==3.6
     # via email-validator
 injector==0.21.0
     # via django-ninja-extra
+jmespath==1.0.1
+    # via
+    #   boto3
+    #   botocore
 kombu==5.3.6
     # via celery
 markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
+minio==7.2.7
 nodeenv==1.8.0
     # via pre-commit
 orjson==3.10.0
@@ -97,6 +115,10 @@ prometheus-client==0.20.0
 prompt-toolkit==3.0.43
     # via click-repl
 psycopg2-binary==2.9.9
+pycparser==2.22
+    # via cffi
+pycryptodome==3.20.0
+    # via minio
 pydantic==2.7.0
     # via
     #   django-ninja
@@ -110,6 +132,7 @@ python-crontab==3.0.0
     # via django-celery-beat
 python-dateutil==2.9.0.post0
     # via
+    #   botocore
     #   celery
     #   python-crontab
 python-dotenv==1.0.1
@@ -121,6 +144,8 @@ redis==5.0.3
     # via django-redis
 rich==13.7.1
 ruff==0.4.1
+s3transfer==0.10.1
+    # via boto3
 setuptools==69.2.0
     # via nodeenv
 six==1.16.0
@@ -134,6 +159,7 @@ tornado==6.4
 typing-extensions==4.11.0
     # via
     #   django-pydantic-field
+    #   minio
     #   pydantic
     #   pydantic-core
 tzdata==2024.1
@@ -141,6 +167,10 @@ tzdata==2024.1
     #   celery
     #   django
     #   django-celery-beat
+urllib3==2.2.1
+    # via
+    #   botocore
+    #   minio
 uvicorn==0.27.1
 vine==5.1.0
     # via
