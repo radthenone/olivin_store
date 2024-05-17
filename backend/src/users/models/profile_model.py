@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 
 from src.common.models import CreatedUpdatedDateModel
@@ -5,9 +7,10 @@ from src.users.models.user_model import User
 
 
 class Profile(CreatedUpdatedDateModel):
-    id = models.AutoField(
+    _id = models.AutoField(
         primary_key=True,
         editable=False,
+        default=uuid.uuid4,
     )
     birth_date = models.DateField(
         null=True,

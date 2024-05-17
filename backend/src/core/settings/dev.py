@@ -136,32 +136,53 @@ ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
 REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 180)
 
 
-# MEDIA
+# STATIC & MEDIA
 # ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#media-root
-MEDIA_ROOT = BASE_DIR / "media"
-# https://docs.djangoproject.com/en/dev/ref/settings/#media-url
-MEDIA_URL = "/media/"
-
-# STATIC
-# ------------------------------------------------------------------------------
+# BUCKET S3 SETTINGS
+BUCKET_NAME = os.getenv("BUCKET_NAME", "olivin-d2e3e393-9767-413b-b6d5-cf8fd6166de0")
 # AWS S3
 if not DEBUG:
     AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY", "")
     AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY", "")
     AWS_REGION_NAME = os.getenv("AWS_REGION_NAME", "")
+    STATIC_URL = f"https://{BUCKET_NAME}.s3.amazonaws.com/"
 # MINIO S3
 MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER", "minioadmin")
 MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
 MINIO_HOST = os.getenv("MINIO_HOST", "minio")
 MINIO_PORT = os.getenv("MINIO_PORT", "9000")
-# BUCKET S3 SETTINGS
-BUCKET_PREFIX = os.getenv("BUCKET_PREFIX", "olivin")
-BUCKET_KEY = os.getenv("BUCKET_KEY", "d2e3e393-9767-413b-b6d5-cf8fd6166de0")
-BUCKET_NAMES = [
-    f"{BUCKET_PREFIX}-{bucket_name}-{BUCKET_KEY}"
-    for bucket_name in os.getenv("BUCKET_NAMES", "avatars,images").split(",")
-]
+STATIC_URL = f"http://{MINIO_HOST}:{MINIO_PORT}/{BUCKET_NAME}/"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "src.data.storages.MinioStorage",
+        "OPTIONS": {
+            "location": BASE_DIR / "static",
+            "base_url": STATIC_URL,  # noqa
+        },
+    },
+    "media": {
+        "BACKEND": "src.data.storages.MinioStorage",
+        "OPTIONS": {
+            "location": BASE_DIR / "media",
+            "base_url": STATIC_URL,  # noqa
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "src.data.storages.AmazonS3Storage",
+        "OPTIONS": {
+            "location": BASE_DIR / "staticfiles",
+            "base_url": STATIC_URL,
+        },
+    },
+    "mediafiles": {
+        "BACKEND": "src.data.storages.AmazonS3Storage",
+        "OPTIONS": {
+            "location": BASE_DIR / "mediafiles",
+            "base_url": STATIC_URL,
+        },
+    },
+}
 
 # DELIVERS
 

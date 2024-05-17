@@ -1,6 +1,8 @@
+import logging
 import os
 
 from celery import Celery
+from celery.exceptions import CeleryError
 from django.conf import settings
 from kombu import Exchange, Queue
 
@@ -12,34 +14,51 @@ os.environ.setdefault(
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 class CeleryClient(IClient):
     def __init__(
         self,
-        main_settings: str = "django.conf:settings",
-        broker_url: str = settings.CELERY_BROKER_URL,
-        result_backend: str = settings.CELERY_RESULT_BACKEND,
+        main_settings: str,
+        broker_url: str,
+        result_backend: str,
+        timezone: str,
         is_events: bool = True,
-        timezone: str = settings.TIME_ZONE,
+        *args,
+        **kwargs,
     ):
-        self.main_settings = main_settings
-        self.broker_url = broker_url
-        self.result_backend = result_backend
-        self.is_events = is_events
-        self.timezone = timezone
-        self.client = None
+        self.celery = self.connect(
+            main_settings=main_settings,
+            broker_url=broker_url,
+            result_backend=result_backend,
+            timezone=timezone,
+            is_events=is_events,
+            *args,
+            **kwargs,
+        )
 
-    def connect(self, **kwargs) -> Celery:
-        if not self.client:
-            self.client = Celery(
-                main=self.main_settings,
-                broker_url=self.broker_url,
-                result_backend=self.result_backend,
-                is_events=self.is_events,
-                timezone=self.timezone,
+    def connect(
+        self,
+        main_settings: str,
+        broker_url: str,
+        result_backend: str,
+        timezone: str,
+        is_events: bool = True,
+        *args,
+        **kwargs,
+    ) -> Celery:
+        try:
+            celery = Celery(
+                main=main_settings,
+                broker_url=broker_url,
+                result_backend=result_backend,
+                is_events=is_events,
+                timezone=timezone,
                 **kwargs,
             )
-            self.client.config_from_object(self.main_settings, namespace="CELERY")
-            self.client.conf.update(
+            celery.config_from_object(main_settings, namespace="CELERY")
+            celery.conf.update(
                 task_queues={
                     "tasks": Queue(
                         "tasks",
@@ -70,10 +89,14 @@ class CeleryClient(IClient):
                     "task_soft_time_limit", settings.CELERY_TASK_SOFT_TIME_LIMIT
                 ),
             )
-            self.client.autodiscover_tasks()
+            celery.autodiscover_tasks()
 
-        return self.client
+            self.celery = celery
+            return self.celery
+
+        except CeleryError as error:
+            logger.error(error)
 
     def disconnect(self, *args, **kwargs) -> None:
-        if self.client:
-            self.client.close()
+        if self.celery:
+            self.celery.close()

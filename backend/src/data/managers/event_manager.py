@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class EventManager:
     def __init__(self, client: RedisClient = RedisClient()):
         self.client = client
-        self.redis = self.client.connect()
+        self.redis = self.client.redis
         self.pubsub = self.redis.pubsub()
 
     @staticmethod

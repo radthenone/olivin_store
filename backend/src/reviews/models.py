@@ -17,7 +17,7 @@ class Review(CreatedUpdatedDateModel):
         null=True,
         blank=True,
     )
-    rating = models.ImageField(
+    rating = models.IntegerField(
         default=0,
         null=True,
         blank=True,
@@ -31,12 +31,19 @@ class Review(CreatedUpdatedDateModel):
         Product,
         on_delete=models.SET_NULL,
         related_name="reviews",
+        null=True,
+        blank=True,
     )
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         related_name="reviews",
+        null=True,
+        blank=True,
     )
+
+    class Meta:
+        unique_together = [("product", "user")]
 
     def __str__(self):
         return self.name

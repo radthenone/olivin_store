@@ -13,6 +13,8 @@ os.environ.setdefault(
 
 
 class RedisClient(IClient):
+    redis: Optional[Redis] = None
+
     def __init__(
         self,
         host: str = settings.REDIS_HOST,
@@ -26,10 +28,10 @@ class RedisClient(IClient):
         self.password = password
         self.db = db
         self.decode_responses = decode_responses
-        self.client = None
+        self.redis = self.connect()
 
     def connect(self, **kwargs) -> Redis:
-        self.client = Redis(
+        self.redis = Redis(
             host=self.host,
             port=self.port,
             password=self.password,
@@ -38,8 +40,8 @@ class RedisClient(IClient):
             **kwargs,
         )
 
-        return self.client
+        return self.redis
 
     def disconnect(self, *args, **kwargs) -> None:
-        if self.client:
-            self.client.close()
+        if self.redis:
+            self.redis.close()

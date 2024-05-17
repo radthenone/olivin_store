@@ -4,12 +4,24 @@ from ninja.constants import NOT_SET
 from ninja_extra import NinjaExtraAPI, api_controller, route
 
 from src.auth.controllers import AuthController
-from src.common import models, tasks  # unused import
 from src.common.controllers import CommonController
 from src.core.adds import ApiExtra
 from src.core.interceptors import AuthBearer
-from src.users import models, tasks  # unused import
 from src.users.controllers import UserController
+
+
+def api_imports():  # unused imports
+    from src.categories import models, tasks
+    from src.common import models, tasks
+    from src.events import models, tasks
+    from src.files import models, tasks
+    from src.orders import models, tasks
+    from src.products import models, tasks
+    from src.reviews import models, tasks
+    from src.users import models, tasks
+
+
+api_imports()
 
 
 @api_controller(auth=NOT_SET, permissions=[], tags=[])
