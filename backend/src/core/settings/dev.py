@@ -145,44 +145,16 @@ if not DEBUG:
     AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY", "")
     AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY", "")
     AWS_REGION_NAME = os.getenv("AWS_REGION_NAME", "")
-    STATIC_URL = f"https://{BUCKET_NAME}.s3.amazonaws.com/"
+    STATIC_URL = f"https://{BUCKET_NAME}.s3.amazonaws.com/static/"
+    MEDIA_URL = f"https://{BUCKET_NAME}.s3.amazonaws.com/media/"
 # MINIO S3
-MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER", "minioadmin")
-MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
-MINIO_HOST = os.getenv("MINIO_HOST", "minio")
-MINIO_PORT = os.getenv("MINIO_PORT", "9000")
-STATIC_URL = f"http://{MINIO_HOST}:{MINIO_PORT}/{BUCKET_NAME}/"
-
-STORAGES = {
-    "default": {
-        "BACKEND": "src.data.storages.MinioStorage",
-        "OPTIONS": {
-            "location": BASE_DIR / "static",
-            "base_url": STATIC_URL,  # noqa
-        },
-    },
-    "media": {
-        "BACKEND": "src.data.storages.MinioStorage",
-        "OPTIONS": {
-            "location": BASE_DIR / "media",
-            "base_url": STATIC_URL,  # noqa
-        },
-    },
-    "staticfiles": {
-        "BACKEND": "src.data.storages.AmazonS3Storage",
-        "OPTIONS": {
-            "location": BASE_DIR / "staticfiles",
-            "base_url": STATIC_URL,
-        },
-    },
-    "mediafiles": {
-        "BACKEND": "src.data.storages.AmazonS3Storage",
-        "OPTIONS": {
-            "location": BASE_DIR / "mediafiles",
-            "base_url": STATIC_URL,
-        },
-    },
-}
+if DEBUG:
+    MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER", "minioadmin")
+    MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
+    MINIO_HOST = os.getenv("MINIO_HOST", "localhost")
+    MINIO_PORT = os.getenv("MINIO_PORT", "9000")
+    STATIC_URL = f"http://{MINIO_HOST}:{MINIO_PORT}/{BUCKET_NAME}/static/"
+    MEDIA_URL = f"http://{MINIO_HOST}:{MINIO_PORT}/{BUCKET_NAME}/media/"
 
 # DELIVERS
 

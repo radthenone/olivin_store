@@ -1,3 +1,7 @@
+from src.users.schemas.profile_schema import (
+    ProfileCreateSchema,
+    ProfileUpdateSchema,
+)
 from src.users.schemas.user_schema import (
     EmailUpdateErrorSchema,
     EmailUpdateSchema,
@@ -9,6 +13,7 @@ from src.users.schemas.user_schema import (
 )
 
 __all__ = [
+    # User schemas
     "SuperUserCreateSchema",
     "UserUpdateSchema",
     "SuperUserCreateSuccessSchema",
@@ -16,4 +21,7 @@ __all__ = [
     "EmailUpdateSchema",
     "EmailUpdateErrorSchema",
     "EmailUpdateSuccessSchema",
+    # Profile schemas
+    "ProfileCreateSchema",
+    "ProfileUpdateSchema",
 ]

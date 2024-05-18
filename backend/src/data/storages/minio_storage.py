@@ -1,11 +1,9 @@
 import logging
 from datetime import datetime
-from mimetypes import guess_type
-from typing import BinaryIO, Optional, TypeVar, Union
+from typing import Optional, TypeVar, Union
 from uuid import UUID
 
-from django.core.files.storage import FileSystemStorage
-from minio.datatypes import Bucket, Object
+from minio.datatypes import Bucket
 from minio.helpers import ObjectWriteResult
 from ninja.files import UploadedFile
 from ninja_extra.exceptions import APIException
