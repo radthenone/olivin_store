@@ -14,3 +14,6 @@ delete_migrations() {
 find "$PWD" -type d -name 'migrations' | while read -r migrations_dir; do
     delete_migrations "$migrations_dir"
 done
+
+
+./commands/dev/backend/delete_volume.sh postgres-olivin olivin_store_postgres_data

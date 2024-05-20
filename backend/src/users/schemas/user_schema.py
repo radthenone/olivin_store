@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated, ClassVar, Optional
 
 from pydantic import (
     BaseModel,
@@ -55,7 +55,7 @@ class UserUpdateSchema(BaseModel):
                 "first_name": "new_first_name",
                 "last_name": "new_last_name",
             },
-        },
+        }
     )
 
 
@@ -147,9 +147,9 @@ class PasswordUpdateSchema(PasswordsMatchSchema):
 
 
 class EmailUpdateSchema(BaseModel):
-    email: Annotated[str, BeforeValidator(validate_email)] = Field(
-        ..., alias="new_email"
-    )
+    email: Annotated[
+        str, Field(..., alias="new_email"), BeforeValidator(validate_email)
+    ]
     old_email: Annotated[str, BeforeValidator(validate_email)]
     old_password: Annotated[str, BeforeValidator(validate_password)]
 

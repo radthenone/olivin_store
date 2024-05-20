@@ -10,20 +10,6 @@ from src.core.interceptors import AuthBearer
 from src.users.controllers import UserController
 
 
-def api_imports():  # unused imports
-    from src.categories import models, tasks
-    from src.common import models, tasks
-    from src.events import models, tasks
-    from src.files import models, tasks
-    from src.orders import models, tasks
-    from src.products import models, tasks
-    from src.reviews import models, tasks
-    from src.users import models, tasks
-
-
-api_imports()
-
-
 @api_controller(auth=NOT_SET, permissions=[], tags=[])
 class APIController:
     @route.get("/bearer", auth=AuthBearer())
@@ -42,8 +28,8 @@ api.register_controllers(
     *[
         APIController,
         CommonController,
-        AuthController,
         UserController,
+        AuthController,
     ]
 )
 

@@ -7,7 +7,7 @@ from src.orders.models.order_model import Order
 
 
 class Shipping(CreatedUpdatedDateModel):
-    _id = models.AutoField(
+    id = models.AutoField(
         primary_key=True,
         editable=False,
     )

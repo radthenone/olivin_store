@@ -4,7 +4,7 @@ from uuid import UUID
 from django.forms.models import model_to_dict
 from ninja_extra.exceptions import APIException
 
-from src.auth.utils import check_password, hash_password
+from src.auth.utils import check_password
 from src.common.responses import ORJSONResponse
 from src.users.errors import EmailAlreadyExists, WrongPassword
 from src.users.schemas import (

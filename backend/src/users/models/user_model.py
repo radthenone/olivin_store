@@ -7,7 +7,7 @@ from django.db import models
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    _id = models.UUIDField(
+    id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False,

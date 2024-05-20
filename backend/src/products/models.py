@@ -77,7 +77,7 @@ class Product(CreatedUpdatedDateModel):
 
 
 class ProductEvent(models.Model):
-    _id = models.AutoField(
+    id = models.AutoField(
         primary_key=True,
         editable=False,
     )

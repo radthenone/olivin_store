@@ -1,7 +1,8 @@
 from datetime import date
-from typing import Annotated, Optional
+from typing import Annotated, ClassVar, Optional
 
 from pydantic import BaseModel, BeforeValidator, HttpUrl
+from pydantic.config import ConfigDict
 
 from src.users.validations import validate_birth_date, validate_phone
 
@@ -11,8 +12,8 @@ class ProfileCreateSchema(BaseModel):
     avatar: Optional[HttpUrl] = None
     phone: Annotated[Optional[str], BeforeValidator(validate_phone)] = None
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "description": "Profile creation schema",
             "title": "ProfileCreate",
             "example": {
@@ -21,6 +22,7 @@ class ProfileCreateSchema(BaseModel):
                 "phone": "+48510100100",
             },
         }
+    )
 
 
 class ProfileUpdateSchema(BaseModel):
@@ -28,8 +30,8 @@ class ProfileUpdateSchema(BaseModel):
     avatar: Optional[HttpUrl] = None
     phone: Annotated[Optional[str], BeforeValidator(validate_phone)] = None
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "description": "Profile update schema",
             "title": "ProfileUpdate",
             "example": {
@@ -38,3 +40,4 @@ class ProfileUpdateSchema(BaseModel):
                 "phone": "+48510100100",
             },
         }
+    )

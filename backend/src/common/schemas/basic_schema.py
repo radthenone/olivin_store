@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from pydantic import BaseModel, ConfigDict
 
 

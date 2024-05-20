@@ -1,5 +1,6 @@
 import os
 import uuid
+import warnings
 
 from dotenv import load_dotenv
 
@@ -155,6 +156,10 @@ if DEBUG:
     MINIO_PORT = os.getenv("MINIO_PORT", "9000")
     STATIC_URL = f"http://{MINIO_HOST}:{MINIO_PORT}/{BUCKET_NAME}/static/"
     MEDIA_URL = f"http://{MINIO_HOST}:{MINIO_PORT}/{BUCKET_NAME}/media/"
+
+# WARNINGS
+# ------------------------------------------------------------------------------
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic")
 
 # DELIVERS
 

@@ -1,13 +1,12 @@
 import uuid
 
+from django.conf import settings
 from django.db import models
-
-from src.common.models import CreatedUpdatedDateModel
-from src.users.models.user_model import User
+from django.utils import timezone
 
 
-class Profile(CreatedUpdatedDateModel):
-    _id = models.AutoField(
+class Profile(models.Model):
+    id = models.AutoField(
         primary_key=True,
         editable=False,
         default=uuid.uuid4,
@@ -27,10 +26,17 @@ class Profile(CreatedUpdatedDateModel):
     )
     # relationships
     user = models.OneToOneField(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="profile",
     )
+    created_at = models.DateTimeField(
+        db_index=True,
+        default=timezone.now,
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
 
     def __str__(self):
-        return f"Profile of {self.user.email}"
+        return f"Profile of {self.user} "

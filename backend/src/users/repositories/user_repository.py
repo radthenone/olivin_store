@@ -1,12 +1,16 @@
 import logging
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 from django.contrib.auth import get_user_model
 
-from src.auth.schemas import UserCreateSchema
 from src.users.interfaces import IUserRepository
-from src.users.schemas import SuperUserCreateSchema, UserUpdateSchema
+
+if TYPE_CHECKING:
+    from src.auth.schemas import UserCreateSchema
+    from src.users.schemas import SuperUserCreateSchema, UserUpdateSchema
+    from src.users.types import UserType
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +21,7 @@ class UserRepository(IUserRepository):
     def get_user_by_id(
         self,
         user_id: UUID,
-    ) -> Optional[User]:
+    ) -> Optional["UserType"]:
         try:
             return User.objects.get(id=user_id)
         except User.DoesNotExist:
@@ -26,7 +30,7 @@ class UserRepository(IUserRepository):
     def get_user_by_email(
         self,
         email: str,
-    ) -> Optional[User]:
+    ) -> Optional["UserType"]:
         try:
             return User.objects.get(email=email)
         except User.DoesNotExist:
@@ -35,7 +39,7 @@ class UserRepository(IUserRepository):
     def get_user_by_username(
         self,
         username: str,
-    ) -> Optional[User]:
+    ) -> Optional["UserType"]:
         try:
             return User.objects.get(username=username)
         except User.DoesNotExist:
@@ -43,7 +47,7 @@ class UserRepository(IUserRepository):
 
     def create_user(
         self,
-        user_create: UserCreateSchema,
+        user_create: "UserCreateSchema",
     ) -> bool:
         try:
             user_db = User(
@@ -67,7 +71,7 @@ class UserRepository(IUserRepository):
 
     def create_superuser(
         self,
-        user_super_create: SuperUserCreateSchema,
+        user_super_create: "SuperUserCreateSchema",
     ) -> bool:
         try:
             user_db = User(
@@ -88,9 +92,9 @@ class UserRepository(IUserRepository):
 
     def update_user(
         self,
-        user_obj: User,
-        user_update: UserUpdateSchema,
-    ) -> User:
+        user_obj: "UserType",
+        user_update: "UserUpdateSchema",
+    ) -> "UserType":
         for field, value in user_update.dict(exclude_unset=True).items():
             setattr(user_obj, field, value)
         user_obj.save()

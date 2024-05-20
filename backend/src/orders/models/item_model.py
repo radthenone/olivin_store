@@ -8,7 +8,7 @@ from src.products.models import Product
 
 
 class OrderItem(CreatedUpdatedDateModel):
-    _id = models.AutoField(
+    id = models.AutoField(
         primary_key=True,
         editable=False,
     )

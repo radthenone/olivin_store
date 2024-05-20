@@ -8,7 +8,7 @@ from src.users.models import User
 
 
 class Review(CreatedUpdatedDateModel):
-    _id = models.AutoField(
+    id = models.AutoField(
         primary_key=True,
         editable=False,
     )

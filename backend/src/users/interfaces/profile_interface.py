@@ -12,7 +12,7 @@ class IProfileRepository(ABC):
     def get_profile_by_user_id(
         self,
         user_id: UUID,
-    ) -> Optional[ProfileType]:
+    ) -> Optional["ProfileType"]:
         pass
 
     def create_profile(
@@ -24,7 +24,7 @@ class IProfileRepository(ABC):
     @abstractmethod
     def update_profile(
         self,
-        profile_obj: ProfileType,
+        profile_obj: "ProfileType",
         profile_update: "ProfileUpdateSchema",
     ):
         pass
@@ -32,6 +32,6 @@ class IProfileRepository(ABC):
     @abstractmethod
     def delete_profile(
         self,
-        profile_obj: ProfileType,
+        profile_obj: "ProfileType",
     ):
         pass

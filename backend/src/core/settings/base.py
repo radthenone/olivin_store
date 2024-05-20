@@ -15,8 +15,8 @@ THIRD_PARTY_APPS = [
 ]
 
 CREATE_APPS = [
-    "src.users",
     "src.common",
+    "src.users",
     "src.events",
     "src.products",
     "src.orders",
