@@ -27,6 +27,7 @@ class MinioClient(IClient):
         access_key: str,
         secret_key: str,
         secure: bool = False,
+        region_name: str = "eu-central-1",
         *args,
         **kwargs,
     ) -> None:
@@ -39,8 +40,18 @@ class MinioClient(IClient):
             *args,
             **kwargs,
         )
+        self._raise_init()
         self.bucket_name = settings.BUCKET_NAME
+        self.static = settings.STATIC_PATH
+        self.region = region_name
         self._load_basic_buckets()
+
+    @staticmethod
+    def _raise_init():
+        if not settings.BUCKET_NAME:
+            raise ValueError("MINIO: BUCKET_NAME is not set")
+        if not settings.STATIC_PATH:
+            raise ValueError("MINIO: STATIC_PATH is not set")
 
     def _load_basic_buckets(self) -> None:
         if not self.minio.bucket_exists(bucket_name=self.bucket_name):

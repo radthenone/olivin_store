@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Union
+from typing import Optional, TypeVar, Union
 from uuid import UUID
 
 from ninja.files import UploadedFile
@@ -9,10 +9,24 @@ ObjectType = TypeVar("ObjectType", bound=Union[UUID, str, int])
 
 class ICloudStorage(ABC):
     @abstractmethod
+    def get_full_object_key(
+        self,
+        name: ObjectType,
+        path: str,
+    ) -> str:
+        pass
+
+    @abstractmethod
+    def add_prefix_policy(self, path: list[str] = None):
+        pass
+
+    @abstractmethod
     def upload_file(
         self,
         object_key: ObjectType,
         file: UploadedFile,
+        new_filename: Optional[str] = None,
+        new_content_type: Optional[str] = None,
     ) -> bool:
         pass
 

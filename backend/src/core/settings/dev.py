@@ -140,22 +140,36 @@ REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 180)
 # STATIC & MEDIA
 # ------------------------------------------------------------------------------
 # BUCKET S3 SETTINGS
+USE_S3_AMAZON = bool(int(os.getenv("USE_S3_AMAZON", 0)))
 BUCKET_NAME = os.getenv("BUCKET_NAME", "olivin-d2e3e393-9767-413b-b6d5-cf8fd6166de0")
+STATIC_PATH = "static"
+MEDIA_PATH = "media"
 # AWS S3
-if not DEBUG:
+if USE_S3_AMAZON:
     AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY", "")
     AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY", "")
     AWS_REGION_NAME = os.getenv("AWS_REGION_NAME", "")
-    STATIC_URL = f"https://{BUCKET_NAME}.s3.amazonaws.com/static/"
-    MEDIA_URL = f"https://{BUCKET_NAME}.s3.amazonaws.com/media/"
-# MINIO S3
-if DEBUG:
+    STATIC_URL = f"https://{BUCKET_NAME}.s3.amazonaws.com/{STATIC_PATH}/"
+    MEDIA_URL = f"https://{BUCKET_NAME}.s3.amazonaws.com/{MEDIA_PATH}/"
+
+if not USE_S3_AMAZON:
     MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER", "minioadmin")
     MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
     MINIO_HOST = os.getenv("MINIO_HOST", "localhost")
     MINIO_PORT = os.getenv("MINIO_PORT", "9000")
-    STATIC_URL = f"http://{MINIO_HOST}:{MINIO_PORT}/{BUCKET_NAME}/static/"
-    MEDIA_URL = f"http://{MINIO_HOST}:{MINIO_PORT}/{BUCKET_NAME}/media/"
+    MINIO_URL = (
+        f"http://127.0.0.1:9000/"
+        if MINIO_HOST == "localhost" and MINIO_PORT == "9000"
+        else f"http://{MINIO_HOST}:{MINIO_PORT}/"
+    )
+    STATIC_URL = f"{MINIO_URL}{BUCKET_NAME}/{STATIC_PATH}/"
+    MEDIA_URL = f"{MINIO_URL}{BUCKET_NAME}/{MEDIA_PATH}/"
+
+STATICFILES_STORAGE = "src.core.storage.get_storage"
+static_dir = os.path.join(BASE_DIR, "static")
+if not os.path.exists(static_dir):
+    os.makedirs(static_dir)
+STATICFILES_DIRS = [static_dir]
 
 # WARNINGS
 # ------------------------------------------------------------------------------
