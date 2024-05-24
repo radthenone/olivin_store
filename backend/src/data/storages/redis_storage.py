@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import timedelta
 from typing import Any, Optional
 
 from django.conf import settings
@@ -17,7 +18,9 @@ class RedisStorage(ICacheStorage):
     def get(self, key: Any) -> Optional[Any]:
         return self.storage.get(name=key)
 
-    def set(self, key: Any, value: Any, expire: Optional[int] = None) -> None:
+    def set(
+        self, key: Any, value: Any, expire: Optional[int | timedelta] = None
+    ) -> None:
         if not expire:
             expire = settings.REDIS_EXPIRE
 
