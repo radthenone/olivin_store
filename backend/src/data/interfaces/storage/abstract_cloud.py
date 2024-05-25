@@ -21,6 +21,14 @@ class ICloudStorage(ABC):
         pass
 
     @abstractmethod
+    def upload_template(self, template_name):
+        pass
+
+    @abstractmethod
+    def get_template(self, template_name):
+        pass
+
+    @abstractmethod
     def upload_file(
         self,
         object_key: ObjectType,
@@ -41,5 +49,12 @@ class ICloudStorage(ABC):
     def delete_file(
         self,
         object_key: ObjectType,
+    ) -> bool:
+        pass
+
+    def is_object_exist(
+        self,
+        object_key: ObjectType,
+        path: Optional[str] = None,
     ) -> bool:
         pass

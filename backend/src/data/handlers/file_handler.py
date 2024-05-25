@@ -10,10 +10,11 @@ logger = getLogger(__name__)
 ObjectType = TypeVar("ObjectType", bound=Union[UUID, str, int])
 
 
-class MediaFileService:
+class MediaFileHandler:
     def __init__(self, storage: ICloudStorage, folder: str):
         self.storage = storage
         self.folder = folder
+        self.set_folder_policy(folder=folder)
 
     def get_media_key(
         self,
@@ -40,12 +41,15 @@ class MediaFileService:
         new_filename: Optional[str] = None,
         new_content_type: Optional[str] = None,
     ) -> bool:
-        return self.storage.upload_file(
-            object_key=object_key,
-            file=file,
-            new_filename=new_filename,
-            new_content_type=new_content_type,
-        )
+        if not self.storage.is_object_exist(object_key=object_key, path=self.folder):
+            return self.storage.upload_file(
+                object_key=object_key,
+                file=file,
+                new_filename=new_filename,
+                new_content_type=new_content_type,
+            )
+
+        return False
 
     def delete_media(
         self,
@@ -56,7 +60,7 @@ class MediaFileService:
         )
 
 
-class AvatarFileService(MediaFileService):
+class AvatarFileHandler(MediaFileHandler):
     def __init__(self, storage: ICloudStorage):
         super().__init__(storage=storage, folder="avatars")
 
@@ -81,7 +85,7 @@ class AvatarFileService(MediaFileService):
         return self.delete_media(object_key=object_key)
 
 
-class ProductFileService(MediaFileService):
+class ProductFileHandler(MediaFileHandler):
     def __init__(self, storage: ICloudStorage):
         super().__init__(storage=storage, folder="products")
 

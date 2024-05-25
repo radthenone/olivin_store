@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import timedelta
 from typing import TYPE_CHECKING, Any, Optional, TypeVar
 
 if TYPE_CHECKING:
@@ -12,19 +13,33 @@ class ICacheHandler(ABC):
         self.pool_storage = pool_storage
 
     @abstractmethod
-    def get_value(self, key: Any) -> Optional[Any]:
+    def get_value(
+        self,
+        key: Any,
+    ) -> Optional[Any]:
         pass
 
     @abstractmethod
-    def set_value(self, key: Any, value: Any) -> None:
+    def set_value(
+        self,
+        key: Any,
+        value: Any,
+        expire: Optional[int | timedelta] = None,
+    ) -> None:
         pass
 
     @abstractmethod
-    def delete_value(self, key: Any) -> None:
+    def delete_value(
+        self,
+        key: Any,
+    ) -> None:
         pass
 
     @abstractmethod
-    def exists_all_values(self, key: Any) -> bool:
+    def exists_all_values(
+        self,
+        key: Any,
+    ) -> bool:
         pass
 
     @abstractmethod

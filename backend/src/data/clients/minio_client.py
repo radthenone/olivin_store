@@ -6,7 +6,6 @@ from django.conf import settings
 from minio import Minio, S3Error
 
 from src.data.interfaces.client.abstract_client import IClient
-from src.data.utils import get_url
 
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE",
@@ -69,7 +68,7 @@ class MinioClient(IClient):
     ) -> Minio:
         try:
             if not self.minio:
-                endpoint = get_url(f"{host}:{port}")
+                endpoint = f"{host}:{port}"
                 minio = Minio(
                     endpoint=endpoint,
                     access_key=access_key,

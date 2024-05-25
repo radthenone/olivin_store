@@ -21,7 +21,6 @@ CREATE_APPS = [
     "src.products",
     "src.orders",
     "src.reviews",
-    "src.files",
     "src.categories",
 ]
 

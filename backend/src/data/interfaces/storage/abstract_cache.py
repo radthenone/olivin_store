@@ -1,17 +1,30 @@
 from abc import ABC, abstractmethod
+from datetime import timedelta
+from typing import Any, Optional
 
 
 class ICacheStorage(ABC):
     @abstractmethod
-    def set(self, key: str, value: str, ttl: int = None) -> bool:
+    def set(
+        self,
+        key: Any,
+        value: Any,
+        expire: Optional[int | timedelta] = None,
+    ) -> bool:
         pass
 
     @abstractmethod
-    def get(self, key: str) -> str:
+    def get(
+        self,
+        key: Any,
+    ) -> str:
         pass
 
     @abstractmethod
-    def delete(self, key: str) -> bool:
+    def delete(
+        self,
+        key: Any,
+    ) -> bool:
         pass
 
     @abstractmethod
@@ -19,5 +32,8 @@ class ICacheStorage(ABC):
         pass
 
     @abstractmethod
-    def exists(self, key: str) -> bool:
+    def exists(
+        self,
+        key: Any,
+    ) -> bool:
         pass

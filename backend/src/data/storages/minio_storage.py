@@ -14,10 +14,13 @@ from ninja_extra.exceptions import APIException
 
 from src.data.clients import MinioClient
 from src.data.interfaces import ICloudStorage
+from src.data.tasks import (
+    change_file_content_type_task,
+    change_file_name_task,
+)
 from src.data.utils import (
-    change_file_content_type,
-    change_file_name,
     clean_name,
+    get_binary_file_data,
     get_content_type,
     get_file_io,
     get_file_size,
@@ -79,34 +82,55 @@ class MinioStorage(ICloudStorage, Storage):
             return name
         return f"{path}/{name}"
 
+    def upload_template(self, template_name):
+        object_key = self.get_full_object_key(name=template_name, path="templates")
+        with open(settings.BASE_DIR / "templates" / template_name, "rb") as file:
+            file_io, content_type, length = get_binary_file_data(file=file)
+            self.client.put_object(
+                bucket_name=self.bucket_name,
+                object_name=object_key,
+                data=file,
+                length=length,
+                content_type=content_type,
+            )
+
+    def get_template(self, template_name):
+        object_key = self.get_full_object_key(name=template_name, path="templates")
+        return self.client.presigned_get_object(self.bucket_name, object_key)
+
     def upload_file(
         self,
         object_key: ObjectType,
         file: UploadedFile,
         new_filename: Optional[str] = None,
         new_content_type: Optional[str] = None,
-    ) -> Optional[ObjectWriteResult]:
+    ) -> bool:
         content_type = get_content_type(file=file) or self.basic_content_type
         if new_filename:
-            file = change_file_name(file=file, new_name=new_filename)
+            file = change_file_name_task.get_result(
+                file=file,
+                new_name=new_filename,
+            )
         if new_content_type:
-            content_type = change_file_content_type(
-                file=file, new_content_type=new_content_type
+            content_type = change_file_content_type_task.get_result(
+                file=file,
+                new_content_type=new_content_type,
             )
         length = get_file_size(file=file)
         file_io = get_file_io(file=file)
         try:
             object_name = self.get_available_name(object_key)
-            return self.client.put_object(
+            self.client.put_object(
                 bucket_name=self.bucket_name,
                 object_name=object_name,
                 data=file_io,
                 length=length,
                 content_type=content_type,
             )
+            return True
         except APIException as error:
             logger.error(error)
-            return None
+            return False
 
     def get_file(
         self,
@@ -128,10 +152,10 @@ class MinioStorage(ICloudStorage, Storage):
             logger.error(error)
             return False
 
-    # django storage static files
-
-    def exists(self, name: str) -> bool:
-        full_object_key = self.get_full_object_key(name, path=self.static)
+    def is_object_exist(
+        self, object_key: ObjectType, path: Optional[str] = None
+    ) -> bool:
+        full_object_key = self.get_full_object_key(object_key, path=path)
         try:
             self.client.stat_object(self.bucket_name, full_object_key)
             return True
@@ -140,6 +164,11 @@ class MinioStorage(ICloudStorage, Storage):
                 return False
             logger.error(error)
             return False
+
+    # django storage static files
+
+    def exists(self, name: str) -> bool:
+        return self.is_object_exist(name, path=self.static)
 
     def save(self, name, content, max_length=None):
         name = self.get_available_name(name, max_length=max_length)
