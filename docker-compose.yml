@@ -80,7 +80,7 @@ services:
       - ./.envs/dev/minio.env
       - ./.envs/.env
     depends_on: [db, redis, mail, minio]
-    profiles: ["dev", "only-celery", "backend", "less-dev"]
+    profiles: ["dev", "backend", "less-dev"]
     healthcheck:
       test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
       interval: "60s"
@@ -103,7 +103,7 @@ services:
       - ./.envs/dev/minio.env
       - ./.envs/.env
     depends_on: [db, redis, mail, minio]
-    profiles: ["dev", "only-celery", "backend", "less-dev"]
+    profiles: ["dev", "backend", "less-dev"]
     healthcheck:
       test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
       interval: "60s"
