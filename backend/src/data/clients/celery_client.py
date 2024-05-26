@@ -3,6 +3,7 @@ import os
 
 from celery import Celery
 from celery.exceptions import CeleryError
+from django.apps import apps
 from django.conf import settings
 from kombu import Exchange, Queue
 
@@ -89,7 +90,7 @@ class CeleryClient(IClient):
                     "task_soft_time_limit", settings.CELERY_TASK_SOFT_TIME_LIMIT
                 ),
             )
-            celery.autodiscover_tasks()
+            celery.autodiscover_tasks(settings.INSTALLED_TASKS)
 
             self.celery = celery
             return self.celery

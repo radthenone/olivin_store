@@ -6,6 +6,8 @@ from src.auth.schemas.auth_schema import (
     RefreshTokenSchema,
     RefreshTokenSchemaFailed,
     RefreshTokenSchemaSuccess,
+    RegisterUserMailSchema,
+    RegisterUserMailSchemaSuccess,
     UserCreateFailedSchema,
     UserCreateSchema,
     UserCreateSuccessSchema,
@@ -22,4 +24,6 @@ __all__ = [
     "LoginSchemaFailed",
     "RefreshTokenSchemaSuccess",
     "RefreshTokenSchemaFailed",
+    "RegisterUserMailSchema",
+    "RegisterUserMailSchemaSuccess",
 ]

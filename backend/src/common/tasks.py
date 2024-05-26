@@ -1,7 +1,7 @@
 import logging
 from datetime import timedelta
 
-from src.data.managers import TaskManager
+from src.data.managers.task_manager import TaskManager
 
 logger = logging.getLogger(__name__)
 

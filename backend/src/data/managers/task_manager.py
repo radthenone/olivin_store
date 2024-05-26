@@ -3,85 +3,52 @@ from datetime import timedelta
 from functools import wraps
 from typing import Any, Callable, Optional, Union
 
-from celery.app import shared_task
 from celery.app.base import Celery
 from celery.canvas import signature
-from celery.local import PromiseProxy
 from celery.schedules import crontab, schedule, solar
 
-from src.common.utils import get_full_function_path
 from src.core.celery import celery as celery_app
 
 logger = logging.getLogger(__name__)
 
 
 class TaskManager:
-    def __init__(
-        self,
-        celery: Celery = celery_app,
-        queue: Optional[str] = None,
-    ):
-        self.celery = celery
+    def __init__(self, client: Celery = celery_app, queue: Optional[str] = None):
+        self.celery = client
         self.queue = queue
-        self.shared_task = shared_task
-        self.signature = signature
 
     def add_to_beat_schedule(self, key: str, value: Any):
         self.celery.conf.beat_schedule[key] = value
 
     def task(
-        self,
-        function: Callable[..., Any],
-        queue: Optional[str] = None,
-        *args,
-        **kwargs,
-    ) -> PromiseProxy:
-        task_name = function.__name__
-        task_queue = queue or getattr(self, "queue", None)
-        task_args = (args or getattr(self, "args", ()),)
-        task_kwargs = (kwargs or getattr(self, "kwargs", {}),)
+        self, function: Callable[..., Any], queue: Optional[str] = None
+    ) -> Callable[..., Any]:
+        task_queue = queue or self.queue
 
-        task = self.celery.task(
-            name=task_name,
-            queue=task_queue,
-            args=task_args,
-            kwargs=task_kwargs,
-        )
+        @self.celery.task(name=function.__name__, queue=task_queue)
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            return function(*args, **kwargs)
 
-        return task
+        def get_result(*a, **k):
+            result = wrapper.delay(*a, **k)
+            task_result = result.get()
+            return task_result
 
-    def add_task(
-        self,
-        queue: Optional[str] = None,
-        *args,
-        **kwargs,
-    ):
-        if not queue:
-            queue = self.queue
+        def get_result_countdown(*a, countdown: Union[timedelta, int] = 0, **k):
+            if isinstance(countdown, timedelta):
+                countdown = countdown.total_seconds()
+            result = wrapper.apply_async(args=a, kwargs=k, countdown=countdown)
+            task_result = result.get()
+            return task_result
 
-        def decorator(function):
-            @wraps(function)
-            def wrapper(*a, **k):
-                task_result = self.task(
-                    function=function,
-                    args=a,
-                    kwargs=k,
-                    queue=queue,
-                )(function)
+        wrapper.get_result = get_result
+        wrapper.get_result_countdown = get_result_countdown
+        return wrapper
 
-                self.celery.register_task(task=task_result)
-
-                return task_result
-
-            task = wrapper(*args, **kwargs)
-
-            def get_result(*a, **k):
-                result = task.delay(*a, **k)
-                task_result = result.get()
-                return task_result
-
-            wrapper.get_result = get_result
-            return wrapper
+    def add_task(self, queue: Optional[str] = None) -> Callable[..., Any]:
+        def decorator(function: Callable[..., Any]) -> Callable[..., Any]:
+            return self.task(function, queue)
 
         return decorator
 
@@ -90,55 +57,27 @@ class TaskManager:
         name: str,
         schedule_interval: Union[timedelta, crontab, solar, schedule],
         queue: Optional[str] = None,
-        *args,
-        **kwargs,
-    ):
+    ) -> Callable[..., Any]:
         if not queue:
             queue = self.queue
 
-        def decorator(
-            function: Callable[..., Any],
-        ):
-            sig = self.signature(
-                get_full_function_path(function),
-                args=args,
-                kwargs=kwargs,
-            )
-
+        def decorator(function: Callable[..., Any]) -> Callable[..., Any]:
+            sig = signature(function.__name__)
             self.celery.add_periodic_task(
+                schedule_interval,
+                sig,
                 name=name,
-                schedule=schedule_interval,
-                sig=sig,
-                args=args,
-                kwargs=kwargs,
-                options={
-                    "queue": queue or getattr(self, "queue", None),
-                },
+                options={"queue": queue},
             )
 
             @wraps(function)
-            def wrapper(*a, **k):
-                try:
-                    self.add_to_beat_schedule(
-                        key=name,
-                        value={
-                            "task": function.__name__,
-                            "schedule": schedule_interval,
-                            "args": a,
-                            "kwargs": k,
-                            "options": {
-                                "queue": queue or getattr(self, "queue", None),
-                            },
-                        },
-                    )
-                except Exception as e:
-                    logger.error(e)
+            def wrapper(*args, **kwargs):
+                return function(*args, **kwargs)
 
             def run(*a, **k):
                 wrapper(*a, **k)
 
             wrapper.run = run
-
             return wrapper
 
         return decorator

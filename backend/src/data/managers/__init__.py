@@ -1,7 +1,7 @@
 from src.data.managers.event_manager import EventManager
-from src.data.managers.task_manager import TaskManager
+from src.data.managers.mail_manager import MailManager
 
 __all__ = [
-    "TaskManager",
     "EventManager",
+    "MailManager",
 ]

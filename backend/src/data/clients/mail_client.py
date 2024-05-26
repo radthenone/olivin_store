@@ -18,18 +18,24 @@ logger = logging.getLogger(__name__)
 class MailClient(IClient):
     client: smtplib.SMTP = None
     port = settings.EMAIL_PORT
-    host = settings.EMAIL_HOST
+    host = settings.EMAIL_HOST if settings.EMAIL_HOST != "127.0.0.1" else "localhost"
     user = settings.EMAIL_HOST_USER
     password = settings.EMAIL_HOST_PASSWORD
 
     def connect(self, **kwargs) -> smtplib.SMTP:
+        if self.client:
+            return self.client
+
         try:
-            if not self.client:
-                client = smtplib.SMTP(self.host, self.port)
-                client.starttls()
-                client.login(self.user, self.password)
-                self.client = client
-                return self.client
+            self.client = smtplib.SMTP(self.host, self.port)
+            logger.info("%s", self.client.ehlo())
+
+            if all([bool(x) for x in [self.user, self.password]]):
+                self.client.login(self.user, self.password)
+
+            logger.info("Successfully connected to the SMTP server")
+            return self.client
+
         except smtplib.SMTPException as error:
             logger.error(error)
 
