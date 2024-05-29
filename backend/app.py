@@ -107,7 +107,13 @@ def on_bind(protocol, addr, port):
 
 def run_auto():
     from src.core.storage import get_storage
-    from src.data.handlers import TemplateHandler
+    from src.data.handlers import ImageFileHandler, TemplateHandler
+
+    image_handler = ImageFileHandler(storage=get_storage())
+    image_handler.upload_image_from_path(
+        name="register.png",
+        folder="media",
+    )
 
     template_handler = TemplateHandler(storage=get_storage())
     template_handler.upload_template("register-mail.html")
@@ -121,10 +127,12 @@ def register():
     use_reloader = getattr(settings, "DJANGO_USE_RELOADER", True)
     threading = getattr(settings, "DJANGO_USE_THREADING", True)
 
-    check_settings()
-    check_migrations_and_connections()
+    if os.getenv("RUN_MAIN") != "true":
+        check_settings()
+        check_migrations_and_connections()
+        run_auto()
+
     start_server(addr, port, use_reloader, threading, protocol)
-    run_auto()
 
 
 if __name__ == "__main__":
