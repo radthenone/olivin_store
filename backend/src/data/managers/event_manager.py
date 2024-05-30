@@ -9,6 +9,27 @@ logger = logging.getLogger(__name__)
 
 
 class EventManager:
+    """
+    Class for managing events.
+
+    Attributes:
+        client (RedisClient): Redis client.
+        redis (Redis): Redis instance.
+        pubsub (PubSub): Redis PubSub instance.
+
+    Methods:
+        publish(event_name: str, event_data: dict)
+        subscribe(event_name: Optional[str] = None, event_list: Optional[list[str]] = None)
+        unsubscribe(event_name: str, event_list: Optional[list[str]] = None)
+        receive_event()
+
+    Usage:
+        event_manager = EventManager()
+        event_manager.publish("test_event", {"key": "value"})
+        event_manager.subscribe("test_event")
+        event_manager.unsubscribe("test_event")
+    """
+
     def __init__(self, client: RedisClient = RedisClient()):
         self.client = client
         self.redis = self.client.redis
