@@ -39,7 +39,7 @@ class AmazonClient(IClient):
         self._raise_init()
         self.static = settings.STATIC_PATH
         self.bucket_name = settings.BUCKET_NAME
-        self._load_basic_buckets()
+        self._load_basic_bucket()
 
     @staticmethod
     def _raise_init():
@@ -48,7 +48,7 @@ class AmazonClient(IClient):
         if not settings.STATIC_PATH:
             raise ValueError("AMAZON: STATIC_PATH is not set")
 
-    def _load_basic_buckets(self) -> None:
+    def _load_basic_bucket(self) -> None:
         if not self.amazon_s3.list_buckets()["Buckets"]:
             self.amazon_s3.create_bucket(
                 Bucket=self.bucket_name,

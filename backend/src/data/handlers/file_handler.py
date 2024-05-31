@@ -16,101 +16,179 @@ class MediaFileHandler:
         self.folder = folder
         self.set_folder_policy(folder=folder)
 
-    def get_media_key(
-        self,
-        object_key: ObjectType,
-    ):
-        return self.storage.get_full_object_key(name=object_key, path=self.folder)
-
     def set_folder_policy(self, folder):
         self.storage.add_prefix_policy(path=[f"{folder}/*"])
 
     def get_media(
         self,
-        object_key: ObjectType,
+        filename: str,
+        object_key: Optional[ObjectType] = None,
     ) -> str:
-        object_key = self.get_media_key(object_key=object_key)
         return self.storage.get_file(
+            filename=filename,
+            folder=self.folder,
             object_key=object_key,
         )
 
-    def upload_media(
+    def upload_media_from_url(
         self,
-        object_key: ObjectType,
+        filename: str,
         file: UploadedFile,
-        new_filename: Optional[str] = None,
-        new_content_type: Optional[str] = None,
+        object_key: Optional[ObjectType] = None,
+        content_type: Optional[str] = None,
     ) -> bool:
-        if not self.storage.is_object_exist(object_key=object_key, path=self.folder):
-            return self.storage.upload_file(
-                object_key=object_key,
+        try:
+            self.storage.upload_file_from_url(
+                filename=filename,
+                folder=self.folder,
                 file=file,
-                new_filename=new_filename,
-                new_content_type=new_content_type,
+                object_key=object_key,
+                content_type=content_type,
             )
+            return True
+        except Exception as e:
+            logger.exception(e)
+            return False
 
-        return False
+    def upload_media_from_path(
+        self,
+        filename: str,
+        object_key: Optional[ObjectType] = None,
+        content_type: Optional[str] = None,
+    ) -> bool:
+        try:
+            self.storage.upload_file_from_path(
+                filename=filename,
+                folder=self.folder,
+                object_key=object_key,
+                content_type=content_type,
+            )
+            return True
+        except Exception as e:
+            logger.exception(e)
+            return False
 
     def delete_media(
         self,
-        object_key: ObjectType,
+        filename: str,
+        object_key: Optional[ObjectType] = None,
     ) -> bool:
         return self.storage.delete_file(
+            filename=filename,
+            folder=self.folder,
             object_key=object_key,
         )
 
 
 class AvatarFileHandler(MediaFileHandler):
-    def __init__(self, storage: ICloudStorage):
-        super().__init__(storage=storage, folder="avatars")
+    content_type = "image/webp"
 
-    def get_avatar(self, object_key: ObjectType) -> str:
-        return self.get_media(object_key=object_key)
+    def __init__(self, storage: ICloudStorage, filename: str = "avatar"):
+        super().__init__(storage=storage, folder="avatars")
+        self.filename = filename
+
+    def get_avatar(
+        self,
+        object_key: Optional[ObjectType] = None,
+    ) -> str:
+        return self.get_media(
+            filename=self.filename,
+            object_key=object_key,
+        )
 
     def upload_avatar(
         self,
-        object_key: ObjectType,
         file: UploadedFile,
-        new_filename="avatar",
-        new_content_type="image/webp",
+        object_key: Optional[ObjectType] = None,
     ) -> bool:
-        return self.upload_media(
-            object_key=object_key,
+        return self.upload_media_from_url(
+            filename=self.filename,
             file=file,
-            new_filename=new_filename,
-            new_content_type=new_content_type,
+            object_key=object_key,
+            content_type=self.content_type,
         )
 
-    def delete_avatar(self, object_key: ObjectType) -> bool:
-        return self.delete_media(object_key=object_key)
+    def delete_avatar(
+        self,
+        object_key: Optional[ObjectType] = None,
+    ) -> bool:
+        return self.delete_media(
+            filename=self.filename,
+            object_key=object_key,
+        )
 
 
 class ProductFileHandler(MediaFileHandler):
-    def __init__(self, storage: ICloudStorage):
+    content_type = "image/webp"
+
+    def __init__(self, storage: ICloudStorage, filename: str = "product"):
         super().__init__(storage=storage, folder="products")
+        self.filename = filename
 
     def get_product(
         self,
-        object_key: ObjectType,
+        object_key: Optional[ObjectType] = None,
     ) -> str:
-        return self.get_media(object_key=object_key)
+        return self.get_media(
+            filename=self.filename,
+            object_key=object_key,
+        )
 
     def upload_product(
         self,
-        object_key: ObjectType,
         file: UploadedFile,
-        new_filename="product",
-        new_content_type="image/webp",
+        object_key: Optional[ObjectType] = None,
     ) -> bool:
-        return self.upload_media(
-            object_key=object_key,
+        return self.upload_media_from_url(
+            filename=self.filename,
             file=file,
-            new_filename=new_filename,
-            new_content_type=new_content_type,
+            object_key=object_key,
+            content_type=self.content_type,
         )
 
     def delete_product(
         self,
-        object_key: ObjectType,
+        object_key: Optional[ObjectType] = None,
     ) -> bool:
-        return self.delete_media(object_key=object_key)
+        return self.delete_media(
+            filename=self.filename,
+            object_key=object_key,
+        )
+
+
+class ImageFileHandler(MediaFileHandler):
+    content_type = "image/webp"
+
+    def __init__(self, storage: ICloudStorage):
+        super().__init__(storage=storage, folder="media")
+
+    def get_image(
+        self,
+        filename: str,
+        object_key: Optional[ObjectType] = None,
+    ) -> str:
+        return self.get_media(
+            filename=filename,
+            object_key=object_key,
+        )
+
+    def upload_image(
+        self,
+        filename: str,
+        object_key: Optional[ObjectType] = None,
+    ) -> bool:
+        return self.upload_media_from_path(
+            filename=filename,
+            object_key=object_key,
+            content_type=self.content_type,
+        )
+
+    def delete_image(
+        self,
+        filename: str,
+        object_key: Optional[ObjectType] = None,
+    ) -> bool:
+        return self.delete_media(
+            filename=filename,
+            object_key=object_key,
+        )

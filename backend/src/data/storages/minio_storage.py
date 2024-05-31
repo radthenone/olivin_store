@@ -1,6 +1,7 @@
 import json
 import logging
 import mimetypes
+import os
 from typing import Optional, TypeVar, Union
 from uuid import UUID
 
@@ -8,22 +9,18 @@ from django.conf import settings
 from django.core.files.storage import Storage
 from minio.datatypes import Bucket
 from minio.error import S3Error
-from minio.helpers import ObjectWriteResult
 from ninja.files import UploadedFile
 from ninja_extra.exceptions import APIException
 
 from src.data.clients import MinioClient
 from src.data.interfaces import ICloudStorage
-from src.data.tasks import (
-    change_file_content_type_task,
-    change_file_name_task,
-)
 from src.data.utils import (
     clean_name,
-    get_binary_file_data,
     get_content_type,
     get_file_io,
     get_file_size,
+    path_file,
+    upload_file,
 )
 
 logger = logging.getLogger(__name__)
@@ -82,70 +79,143 @@ class MinioStorage(ICloudStorage, Storage):
             return name
         return f"{path}/{name}"
 
-    def upload_template(self, template_name):
-        object_key = self.get_full_object_key(name=template_name, path="templates")
-        with open(settings.BASE_DIR / "templates" / template_name, "rb") as file:
-            file_io, content_type, length = get_binary_file_data(file=file)
-            self.client.put_object(
-                bucket_name=self.bucket_name,
-                object_name=object_key,
-                data=file,
-                length=length,
-                content_type=content_type,
-            )
-
-    def get_template(self, template_name):
-        object_key = self.get_full_object_key(name=template_name, path="templates")
-        return self.client.presigned_get_object(self.bucket_name, object_key)
-
-    def upload_file(
+    def get_object_key(
         self,
-        object_key: ObjectType,
-        file: UploadedFile,
-        new_filename: Optional[str] = None,
-        new_content_type: Optional[str] = None,
+        filename: str,
+        folder: str,
+        object_key: Optional[ObjectType] = None,
+    ) -> str:
+        if object_key:
+            return f"{folder}/{object_key}/{filename}"
+
+        return f"{folder}/{filename}"
+
+    def upload_file_from_path(
+        self,
+        filename: str,
+        folder: str,
+        object_key: Optional[ObjectType] = None,
+        content_type: Optional[str] = None,
     ) -> bool:
-        content_type = get_content_type(file=file) or self.basic_content_type
-        if new_filename:
-            file = change_file_name_task.get_result(
-                file=file,
-                new_name=new_filename,
-            )
-        if new_content_type:
-            content_type = change_file_content_type_task.get_result(
-                file=file,
-                new_content_type=new_content_type,
-            )
-        length = get_file_size(file=file)
-        file_io = get_file_io(file=file)
+        uploaded_file = None
         try:
-            object_name = self.get_available_name(object_key)
-            self.client.put_object(
-                bucket_name=self.bucket_name,
-                object_name=object_name,
-                data=file_io,
-                length=length,
-                content_type=content_type,
+            file = path_file(
+                filename=filename,
+                folder=folder,
+                object_key=object_key,
             )
-            return True
-        except APIException as error:
-            logger.error(error)
+            uploaded_file = upload_file(
+                filename=filename,
+                file=file,
+                content_type=content_type
+                if content_type
+                else mimetypes.guess_type(file.name)[0],
+            )
+        except Exception as error:
+            logger.error(f"Error opening file {filename}: {error}")
+        if not uploaded_file:
             return False
+
+        if not uploaded_file:
+            return False
+        full_object_key = self.get_object_key(
+            filename=uploaded_file.name,
+            folder=folder,
+            object_key=object_key,
+        )
+
+        if not self.is_object_exist(full_object_key):
+            try:
+                self.client.put_object(
+                    bucket_name=self.bucket_name,
+                    object_name=full_object_key,
+                    data=get_file_io(file=uploaded_file),
+                    length=uploaded_file.size,
+                    content_type=uploaded_file.content_type,
+                )
+                logger.info(f"File {full_object_key} uploaded to {self.bucket_name}.")
+                return True
+            except Exception as error:
+                logger.error(f"Error uploading file {full_object_key} to S3: {error}")
+                return False
+
+        logger.info("File already exists in the bucket.")
+        return False
+
+    def upload_file_from_url(
+        self,
+        filename: str,
+        folder: str,
+        file: UploadedFile,
+        object_key: Optional[ObjectType] = None,
+        content_type: Optional[str] = None,
+    ) -> bool:
+        uploaded_file = upload_file(
+            filename=filename,
+            file=file,
+            content_type=content_type
+            if content_type
+            else mimetypes.guess_type(filename)[0],
+        )
+        full_object_key = self.get_object_key(
+            filename=uploaded_file.name,
+            folder=folder,
+            object_key=object_key,
+        )
+
+        if not self.is_object_exist(full_object_key):
+            if uploaded_file:
+                try:
+                    self.client.put_object(
+                        bucket_name=self.bucket_name,
+                        object_name=full_object_key,
+                        data=get_file_io(file=uploaded_file),
+                        length=uploaded_file.size,
+                        content_type=uploaded_file.content_type,
+                    )
+                    return True
+                except APIException as error:
+                    logger.error(f"Failed to upload file {file.name}: {error}")
+                    return False
+                except Exception as error:
+                    logger.error(f"An unexpected error occurred: {error}")
+                    return False
+
+        logger.info("File already exists in the bucket.")
+        return False
 
     def get_file(
         self,
-        object_key: ObjectType,
-    ) -> str:
-        return self.client.presigned_get_object(self.bucket_name, object_key)
+        filename: str,
+        folder: Optional[str] = None,
+        object_key: Optional[ObjectType] = None,
+    ) -> Optional[str]:
+        full_object_key = self.get_object_key(
+            filename=filename,
+            folder=folder,
+            object_key=object_key,
+        )
+        try:
+            return self.client.presigned_get_object(self.bucket_name, full_object_key)
+        except Exception as error:
+            logger.error(error)
+            return None
 
     def delete_file(
         self,
-        object_key: ObjectType,
+        filename: str,
+        folder: Optional[str] = None,
+        object_key: Optional[ObjectType] = None,
     ) -> bool:
+        full_object_key = self.get_object_key(
+            filename=filename,
+            folder=folder,
+            object_key=object_key,
+        )
         try:
             self.client.remove_object(
                 bucket_name=self.bucket_name,
-                object_name=object_key,
+                object_name=full_object_key,
             )
             return True
         except APIException as error:
@@ -153,11 +223,13 @@ class MinioStorage(ICloudStorage, Storage):
             return False
 
     def is_object_exist(
-        self, object_key: ObjectType, path: Optional[str] = None
+        self,
+        full_object_key: ObjectType,
     ) -> bool:
-        full_object_key = self.get_full_object_key(object_key, path=path)
         try:
-            self.client.stat_object(self.bucket_name, full_object_key)
+            self.client.stat_object(
+                bucket_name=self.bucket_name, object_name=full_object_key
+            )
             return True
         except S3Error as error:
             if error.code == "NoSuchKey":
@@ -168,7 +240,8 @@ class MinioStorage(ICloudStorage, Storage):
     # django storage static files
 
     def exists(self, name: str) -> bool:
-        return self.is_object_exist(name, path=self.static)
+        full_object_key = self.get_full_object_key(name, path=self.static)
+        return self.is_object_exist(full_object_key)
 
     def save(self, name, content, max_length=None):
         name = self.get_available_name(name, max_length=max_length)

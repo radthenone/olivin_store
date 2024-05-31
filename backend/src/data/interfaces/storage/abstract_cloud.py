@@ -21,40 +21,55 @@ class ICloudStorage(ABC):
         pass
 
     @abstractmethod
-    def upload_template(self, template_name):
-        pass
-
-    @abstractmethod
-    def get_template(self, template_name):
-        pass
-
-    @abstractmethod
-    def upload_file(
+    def get_object_key(
         self,
-        object_key: ObjectType,
+        filename: str,
+        folder: str,
+        object_key: Optional[ObjectType] = None,
+    ) -> str:
+        pass
+
+    @abstractmethod
+    def upload_file_from_path(
+        self,
+        filename: str,
+        folder: str,
+        object_key: Optional[ObjectType] = None,
+        content_type: Optional[str] = None,
+    ) -> bool:
+        pass
+
+    @abstractmethod
+    def upload_file_from_url(
+        self,
+        filename: str,
+        folder: str,
         file: UploadedFile,
-        new_filename: Optional[str] = None,
-        new_content_type: Optional[str] = None,
+        object_key: Optional[ObjectType] = None,
+        content_type: Optional[str] = None,
     ) -> bool:
         pass
 
     @abstractmethod
     def get_file(
         self,
-        object_key: ObjectType,
-    ) -> str:
+        filename: str,
+        folder: Optional[str] = None,
+        object_key: Optional[ObjectType] = None,
+    ) -> Optional[str]:
         pass
 
     @abstractmethod
     def delete_file(
         self,
-        object_key: ObjectType,
+        filename: str,
+        folder: Optional[str] = None,
+        object_key: Optional[ObjectType] = None,
     ) -> bool:
         pass
 
     def is_object_exist(
         self,
-        object_key: ObjectType,
-        path: Optional[str] = None,
+        full_object_key: ObjectType,
     ) -> bool:
         pass

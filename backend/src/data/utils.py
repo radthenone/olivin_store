@@ -1,13 +1,15 @@
 import io
+import mimetypes
 import pathlib
 import posixpath
 from mimetypes import guess_type
-from typing import BinaryIO
-from urllib.parse import urlparse
+from typing import BinaryIO, Optional, TypeVar, Union
 from uuid import UUID
 
 from django.conf import settings
 from ninja import UploadedFile
+
+ObjectType = TypeVar("ObjectType", bound=Union[UUID, str, int])
 
 
 def clean_name(name):
@@ -30,8 +32,46 @@ def clean_name(name):
     return cln_name
 
 
-def get_url(name: str) -> str:
-    return urlparse(name).geturl()
+def path_file(
+    filename: str,
+    folder: str,
+    object_key: Optional[ObjectType] = None,
+) -> BinaryIO:
+    full_object_path = f"{folder}/{filename}"
+    if object_key:
+        full_object_path = f"{folder}/{object_key}/{filename}"
+
+    file_path = settings.BASE_DIR / full_object_path
+    return open(file_path, "rb")
+
+
+def upload_file(
+    filename: str,
+    file: UploadedFile | BinaryIO,
+    content_type: Optional[str] = None,
+) -> UploadedFile:
+    file_io = io.BytesIO()
+    if isinstance(file, UploadedFile):
+        contents = file.file.read()
+        file_io.write(contents)
+        file_size = len(contents)
+    else:
+        contents = file.read()
+        file_io.write(contents)
+        file_io.seek(0, io.SEEK_END)
+        file_size = file_io.tell()
+        file_io.seek(0)
+
+    filename = clean_name(filename)
+    if content_type:
+        filename = filename.split(".")[0] + "." + content_type.split("/")[1]
+
+    return UploadedFile(
+        file=file_io,
+        name=filename,
+        content_type=content_type or mimetypes.guess_type(filename)[0],
+        size=file_size,
+    )
 
 
 def get_file_size(file: UploadedFile) -> int:
@@ -40,20 +80,6 @@ def get_file_size(file: UploadedFile) -> int:
 
 def get_content_type(file: UploadedFile) -> str:
     return guess_type(file.name)[0]
-
-
-def change_file_name(file: UploadedFile, new_name: str) -> UploadedFile:
-    file.name = new_name
-    return file
-
-
-def change_file_content_type(
-    file: UploadedFile, new_content_type: str = None
-) -> UploadedFile:
-    if new_content_type is None:
-        new_content_type = "image/webp"
-    file.content_type = new_content_type
-    return file
 
 
 def get_file_io(file: UploadedFile) -> BinaryIO:

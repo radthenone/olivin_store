@@ -9,16 +9,18 @@ ObjectType = TypeVar("ObjectType", bound=Union[UUID, str, int])
 
 
 class TemplateHandler:
-    def __init__(self, storage: ICloudStorage):
+    def __init__(self, storage: ICloudStorage, folder: str = "templates"):
         self.storage = storage
-        self.folder = "templates"
+        self.folder = folder
 
     def upload_template(self, template_name: str) -> bool:
-        if not self.storage.is_object_exist(template_name, self.folder):
-            logger.info(f"Uploading template {template_name}")
-            return self.storage.upload_template(template_name)
-        logger.info(f"Template {template_name} already exists")
-        return False
+        return self.storage.upload_file_from_path(
+            filename=template_name,
+            folder=self.folder,
+        )
 
     def get_template(self, template_name: str) -> Any:
-        return self.storage.get_template(template_name)
+        return self.storage.get_file_from_path(
+            filename=template_name,
+            folder=self.folder,
+        )

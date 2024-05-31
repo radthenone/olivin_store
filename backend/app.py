@@ -110,9 +110,8 @@ def run_auto():
     from src.data.handlers import ImageFileHandler, TemplateHandler
 
     image_handler = ImageFileHandler(storage=get_storage())
-    image_handler.upload_image_from_path(
-        name="register.png",
-        folder="media",
+    image_handler.upload_image(
+        filename="register.png",
     )
 
     template_handler = TemplateHandler(storage=get_storage())
