@@ -26,6 +26,11 @@ CREATE_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CREATE_APPS
 
+INSTALLED_TASKS = [
+    "src.data.tasks",
+    *[f"{app}.tasks" for app in CREATE_APPS],
+]
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
