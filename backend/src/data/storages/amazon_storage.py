@@ -209,14 +209,16 @@ class AmazonS3Storage(ICloudStorage, Storage):
             object_key=object_key,
         )
         try:
-            response = self.client.generate_presigned_url(
-                ClientMethod="get_object",
-                Params={
-                    "Bucket": self.bucket_name,
-                    "Key": full_object_path,
-                },
-            )
-            return response
+            if self.is_object_exist(full_object_path):
+                response = self.client.generate_presigned_url(
+                    ClientMethod="get_object",
+                    Params={
+                        "Bucket": self.bucket_name,
+                        "Key": full_object_path,
+                    },
+                    ExpiresIn=3600,
+                )
+                return response
         except self.client.exceptions.NoSuchKey:
             logger.error(f"File {full_object_path} not found in S3")
             return None

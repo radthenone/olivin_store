@@ -1,6 +1,7 @@
 import logging
 import os
 import smtplib
+from typing import Optional
 
 from django.conf import settings
 
@@ -22,7 +23,7 @@ class MailClient(IClient):
     user = settings.EMAIL_HOST_USER
     password = settings.EMAIL_HOST_PASSWORD
 
-    def connect(self, **kwargs) -> smtplib.SMTP:
+    def connect(self, **kwargs) -> Optional[smtplib.SMTP]:
         if self.client:
             return self.client
 
@@ -37,10 +38,15 @@ class MailClient(IClient):
             return self.client
 
         except smtplib.SMTPException as error:
-            logger.error(error)
-
-        except Exception as error:
-            logger.error(error)
+            logger.error(f"Failed to send email: {str(error)}")
+            return None
 
     def disconnect(self, **kwargs) -> None:
-        self.client.quit()
+        if self.client:
+            try:
+                self.client.quit()
+                logger.info("Successfully disconnected from the SMTP server")
+            except smtplib.SMTPException as error:
+                logger.error(f"Failed to disconnect from the SMTP server: {str(error)}")
+            finally:
+                self.client = None

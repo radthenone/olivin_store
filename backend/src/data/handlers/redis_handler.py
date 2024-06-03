@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 from typing import Any, Optional
 
@@ -36,7 +37,10 @@ class CacheHandler(ICacheHandler):
         self,
         key: Any,
     ) -> Optional[Any]:
-        return self.storage.get(key=key)
+        value_json = self.storage.get(key=key)
+        if value_json:
+            return json.loads(value_json)
+        return None
 
     def set_value(
         self,
@@ -44,7 +48,8 @@ class CacheHandler(ICacheHandler):
         value: Any,
         expire: Optional[int | timedelta] = None,
     ) -> None:
-        self.storage.set(key=key, value=value, expire=expire)
+        value_json = json.dumps(value)
+        self.storage.set(key=key, value=value_json, expire=expire)
 
     def delete_value(
         self,

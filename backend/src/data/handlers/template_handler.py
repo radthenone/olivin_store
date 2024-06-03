@@ -20,7 +20,7 @@ class TemplateHandler:
         )
 
     def get_template(self, template_name: str) -> Any:
-        return self.storage.get_file_from_path(
+        return self.storage.get_file(
             filename=template_name,
             folder=self.folder,
         )

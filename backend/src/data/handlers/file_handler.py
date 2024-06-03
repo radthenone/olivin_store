@@ -4,19 +4,19 @@ from uuid import UUID
 
 from ninja.files import UploadedFile
 
-from src.data.interfaces import ICloudStorage
+from src.data.interfaces import ICloudStorage, IFileHandler
 
 logger = getLogger(__name__)
 ObjectType = TypeVar("ObjectType", bound=Union[UUID, str, int])
 
 
-class MediaFileHandler:
+class MediaFileHandler(IFileHandler):
     def __init__(self, storage: ICloudStorage, folder: str):
-        self.storage = storage
+        super().__init__(storage=storage)
         self.folder = folder
-        self.set_folder_policy(folder=folder)
+        self._set_folder_policy(folder=folder)
 
-    def set_folder_policy(self, folder):
+    def _set_folder_policy(self, folder):
         self.storage.add_prefix_policy(path=[f"{folder}/*"])
 
     def get_media(

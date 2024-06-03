@@ -31,7 +31,7 @@ class TaskManager:
             return function(*args, **kwargs)
 
         def get_result(*a, **k):
-            result = wrapper.delay(*a, **k)
+            result = wrapper.apply_async(*a, **k)
             task_result = result.get()
             return task_result
 

@@ -1,4 +1,3 @@
-import warnings
 from typing import Annotated
 
 from pydantic import (
@@ -15,6 +14,30 @@ from src.users.validations import (
     validate_password,
     validate_username,
 )
+
+
+class RegisterUserMailSchema(BaseModel):
+    email: Annotated[str, BeforeValidator(validate_email)]
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "required": ["email"],
+            "properties": {
+                "email": {
+                    "type": "string",
+                },
+            },
+            "description": "RegisterUserMail schema",
+            "title": "RegisterUserMail schema",
+            "example": {
+                "email": "a@a.com",
+            },
+        }
+    )
+
+
+class RegisterUserMailSchemaSuccess(BaseModel):
+    url: str
 
 
 class LoginSchema(BaseModel):
@@ -76,7 +99,7 @@ class PasswordsMatchSchema(BaseModel):
 
 class UserCreateSchema(PasswordsMatchSchema):
     username: Annotated[str, BeforeValidator(validate_username)]
-    email: Annotated[str, BeforeValidator(validate_email)]
+    email: Annotated[str, BeforeValidator(validate_email)] = None
     first_name: str
     last_name: str
 
@@ -120,7 +143,6 @@ class UserCreateSchema(PasswordsMatchSchema):
                 "password": "Password12345!",
                 "rewrite_password": "Password12345!",
                 "username": "username",
-                "email": "a@a.com",
                 "first_name": "first_name",
                 "last_name": "last_name",
             },

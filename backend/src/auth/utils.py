@@ -106,3 +106,13 @@ def encode_jwt_token(username: str, user_id: uuid.UUID) -> dict:
     }
     logger.info("Tokens set: %s", data)
     return data
+
+
+def get_backend_url(add_path: str = "") -> str:
+    if settings.DJANGO_HOST == "0.0.0.0":
+        host = "127.0.0.1"
+        port = settings.DJANGO_PORT
+        base_url = f"http://{host}:{port}"
+    else:
+        base_url = f"{settings.API_BACKEND_URL}"
+    return f"{base_url}{add_path}"

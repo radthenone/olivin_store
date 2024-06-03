@@ -1,6 +1,9 @@
 import logging
+import uuid
+from datetime import timedelta
 
 from django.http import JsonResponse
+from ninja import File, UploadedFile
 from ninja_extra import api_controller, http_get, http_post
 
 from src.common.tasks import (
@@ -9,7 +12,8 @@ from src.common.tasks import (
     multiply_interval2,
     value_return,
 )
-from src.data.handlers import CacheHandler, EventHandler
+from src.core.storage import get_storage
+from src.data.handlers import AvatarFileHandler, CacheHandler, EventHandler
 from src.data.managers import EventManager
 from src.data.storages import RedisStorage
 
@@ -39,12 +43,16 @@ class CommonController:
     def task2(self):
         result = multiply.get_result(10, 2)
         result2 = multiply_interval.get_result(10, 2)
+        result3 = multiply_interval.get_result_countdown(
+            2, 2, countdown=timedelta(minutes=1)
+        )
         multiply_interval2.run(10, 2)
         value_return.run(10, 2)
         return JsonResponse(
             {
                 "result": result,
                 "result2": result2,
+                "result3": result3,
             }
         )
 
@@ -52,3 +60,8 @@ class CommonController:
     def event(self, request):
         self.event_handler.pub("event", {"message": "hello"})
         return JsonResponse({"message": "make event"})
+
+    @http_post("/add-avatar")
+    def add_avatar(self, request, file: UploadedFile = File(...)):
+        avatar_handler = AvatarFileHandler(storage=get_storage(), filename="avatar")
+        return avatar_handler.upload_avatar(file=file, object_key=f"{uuid.uuid4()}")
