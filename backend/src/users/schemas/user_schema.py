@@ -1,4 +1,4 @@
-from typing import Annotated, ClassVar, Optional
+from typing import Annotated, Optional
 
 from pydantic import (
     BaseModel,
@@ -7,9 +7,9 @@ from pydantic import (
 )
 from pydantic.fields import Field
 
-from src.auth.schemas import PasswordsMatchSchema
 from src.common.schemas import (
     MessageSchema,
+    PasswordsMatchSchema,
 )
 from src.users.validations import (
     validate_email,

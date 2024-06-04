@@ -4,11 +4,12 @@ import time
 from typing import Optional
 
 from src.data.clients import RedisClient
+from src.data.interfaces import IEventManager
 
 logger = logging.getLogger(__name__)
 
 
-class EventManager:
+class EventManager(IEventManager):
     """
     Class for managing events.
 

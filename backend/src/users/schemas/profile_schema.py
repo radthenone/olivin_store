@@ -1,15 +1,13 @@
 from datetime import date
-from typing import Annotated, ClassVar, Optional
+from typing import Annotated, Optional
 
-from pydantic import BaseModel, BeforeValidator, HttpUrl
-from pydantic.config import ConfigDict
+from pydantic import BaseModel, BeforeValidator, ConfigDict, HttpUrl
 
 from src.users.validations import validate_birth_date, validate_phone
 
 
 class ProfileCreateSchema(BaseModel):
     birth_date: Annotated[Optional[date], BeforeValidator(validate_birth_date)] = None
-    avatar: Optional[HttpUrl] = None
     phone: Annotated[Optional[str], BeforeValidator(validate_phone)] = None
 
     model_config = ConfigDict(
@@ -18,7 +16,6 @@ class ProfileCreateSchema(BaseModel):
             "title": "ProfileCreate",
             "example": {
                 "birth_date": "1990-01-01",
-                "avatar": "http://example.com/path/to/avatar.jpg",
                 "phone": "+48510100100",
             },
         }

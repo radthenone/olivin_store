@@ -1,17 +1,19 @@
-from typing import Annotated
+from datetime import date
+from typing import Annotated, Optional
 
 from pydantic import (
     BaseModel,
     BeforeValidator,
     ConfigDict,
-    model_validator,
 )
 
-from src.common.schemas import MessageSchema
+from src.common.schemas import MessageSchema, PasswordsMatchSchema
+from src.users.schemas import ProfileCreateSchema
 from src.users.validations import (
-    check_passwords_match,
+    validate_birth_date,
     validate_email,
     validate_password,
+    validate_phone,
     validate_username,
 )
 
@@ -87,14 +89,79 @@ class RefreshTokenSchemaFailed(MessageSchema):
     message: str = "Invalid refresh token"
 
 
-class PasswordsMatchSchema(BaseModel):
-    password: Annotated[str, BeforeValidator(validate_password)]
-    rewrite_password: Annotated[str, BeforeValidator(validate_password)]
+class RegisterSchema(PasswordsMatchSchema):
+    username: Annotated[str, BeforeValidator(validate_username)]
+    email: Annotated[str, BeforeValidator(validate_email)] = None
+    first_name: str
+    last_name: str
+    birth_date: Annotated[Optional[date], BeforeValidator(validate_birth_date)] = None
+    phone: Annotated[Optional[str], BeforeValidator(validate_phone)] = None
 
-    @model_validator(mode="after")
-    def passwords_match(self) -> "PasswordsMatchSchema":
-        if check_passwords_match(self.password, self.rewrite_password):
-            return self
+    model_config = ConfigDict(
+        json_schema_extra={
+            "required": [
+                "password",
+                "email",
+                "rewrite_password",
+                "username",
+                "first_name",
+                "last_name",
+                "birth_date",
+                "phone",
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "format": "password",
+                },
+                "rewrite_password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "format": "password",
+                },
+                "username": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 16,
+                },
+                "first_name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 16,
+                },
+                "last_name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 16,
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                },
+                "birth_date": {
+                    "type": "string",
+                    "format": "date",
+                },
+                "phone": {
+                    "type": "string",
+                    "format": "phone",
+                },
+            },
+            "description": "Register schema",
+            "title": "Register schema",
+            "example": {
+                "password": "Password12345!",
+                "rewrite_password": "Password12345!",
+                "username": "username",
+                "first_name": "first_name",
+                "last_name": "last_name",
+                "email": "a@a.com",
+                "birth_date": "1990-01-01",
+                "phone": "+48510100100",
+            },
+        }
+    )
 
 
 class UserCreateSchema(PasswordsMatchSchema):
@@ -102,6 +169,7 @@ class UserCreateSchema(PasswordsMatchSchema):
     email: Annotated[str, BeforeValidator(validate_email)] = None
     first_name: str
     last_name: str
+    profiles: ProfileCreateSchema
 
     model_config = ConfigDict(
         json_schema_extra={

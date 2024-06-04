@@ -1,9 +1,11 @@
+import time
 import uuid
 from datetime import timedelta
 from logging import getLogger
-from typing import TYPE_CHECKING, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 from django.contrib.auth.hashers import check_password
+from ninja import UploadedFile
 from ninja_extra.exceptions import APIException
 
 from src.auth.errors import InvalidToken, RefreshTokenRequired, UnAuthorized
@@ -12,6 +14,7 @@ from src.auth.schemas import (
     LoginSchemaSuccess,
     RefreshTokenSchemaFailed,
     RefreshTokenSchemaSuccess,
+    RegisterSchema,
     RegisterUserMailSchema,
     RegisterUserMailSchemaSuccess,
     UserCreateFailedSchema,
@@ -25,11 +28,13 @@ from src.users.errors import (
     UserDoesNotExist,
     UsernameAlreadyExists,
 )
+from src.users.schemas import ProfileCreateSchema
 
 if TYPE_CHECKING:
-    from src.data.handlers import ImageFileHandler
+    from src.data.handlers import AvatarFileHandler, ImageFileHandler  # unused import
     from src.data.interfaces import (
         ICacheHandler,
+        IEventHandler,
         IFileHandler,
         IRegistrationEmailHandler,
     )
@@ -46,13 +51,17 @@ class AuthService:
         cache_handler: "ICacheHandler",
         mail_handler: "IRegistrationEmailHandler",
         image_handler: "IFileHandler",
+        event_handler: "IEventHandler",
         *args,
         **kwargs,
     ):
+        self.is_profile_created: bool = False
         self.user_repository = repository
         self.cache = cache_handler
+        self.event = event_handler
         self.mail = mail_handler
         self.image = cast("ImageFileHandler", image_handler)
+        self.avatar = cast("AvatarFileHandler", image_handler)
         super().__init__(*args, **kwargs)
 
     def create_register_token(self, token: str, email: str) -> None:
@@ -130,25 +139,63 @@ class AuthService:
         )
         raise APIException("Email does not exist", code=400)
 
+    def register_profile_response(self):
+        self.event.sub(["register_profile_response"])
+        while data := self.event.get():
+            self.is_profile_created = data["is_created"]
+
     def register_user(
         self,
         token: str,
-        user_create: "UserCreateSchema",
+        avatar: UploadedFile,
+        user_register: "RegisterSchema",
     ) -> Optional["ORJSONResponse"]:
-        email = self.get_register_token(token=token)["email"]
-        if email:
-            user_create.email = email
+        reg_token = self.get_register_token(token=token)
+        if reg_token:
+            email = reg_token["email"]
+            user_create = UserCreateSchema(
+                email=email,
+                **user_register.model_dump(
+                    include={
+                        "password",
+                        "rewrite_password",
+                        "username",
+                        "first_name",
+                        "last_name",
+                    }
+                ),
+            )
             self.check_user(user=user_create)
             if self.user_repository.create_user(
                 user_create=user_create,
             ):
-                logger.info("User %s created", user_create.username)
-                return ORJSONResponse(
-                    data=UserCreateSuccessSchema().model_dump(),
-                    status=201,
-                )
+                if self.user_repository.get_user_by_email(email=email):
+                    user_id = self.user_repository.get_user_by_email(email=email).id
+                    profile_create = ProfileCreateSchema(
+                        **user_register.model_dump(
+                            include={
+                                "birth_date",
+                                "phone",
+                            }
+                        ),
+                    )
+                    self.avatar.upload_avatar(file=avatar, object_key=f"{user_id}")
+                    self.event.pub(
+                        "user_profile_created",
+                        event_data={
+                            "user_id": user_id,
+                            "profile_create": profile_create,
+                        },
+                    )
+                    time.sleep(5)
+                    if self.is_profile_created:
+                        logger.info("User %s created", user_create.username)
+                        return ORJSONResponse(
+                            data=UserCreateSuccessSchema().model_dump(),
+                            status=201,
+                        )
 
-        logger.info("User %s not created", user_create.username)
+        logger.info("User %s not created", user_register.username)
         return ORJSONResponse(
             data=UserCreateFailedSchema().model_dump(),
             status=400,

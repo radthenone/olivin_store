@@ -31,6 +31,10 @@ INSTALLED_TASKS = [
     *[f"{app}.tasks" for app in CREATE_APPS],
 ]
 
+WORKING_EVENTS = [
+    "src.auth.controllers.auth_controller.AuthController",
+]
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",

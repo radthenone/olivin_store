@@ -216,7 +216,6 @@ class AmazonS3Storage(ICloudStorage, Storage):
                         "Bucket": self.bucket_name,
                         "Key": full_object_path,
                     },
-                    ExpiresIn=3600,
                 )
                 return response
         except self.client.exceptions.NoSuchKey:

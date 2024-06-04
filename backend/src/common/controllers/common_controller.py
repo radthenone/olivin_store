@@ -58,7 +58,7 @@ class CommonController:
 
     @http_post("/event")
     def event(self, request):
-        self.event_handler.pub("event", {"message": "hello"})
+        self.event_handler.pub("event", {"message": "hello22222222222"})
         return JsonResponse({"message": "make event"})
 
     @http_post("/add-avatar")

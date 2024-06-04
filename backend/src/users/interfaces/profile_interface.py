@@ -18,6 +18,8 @@ class IProfileRepository(ABC):
     def create_profile(
         self,
         profile_create: "ProfileCreateSchema",
+        avatar: str,
+        user_id: UUID,
     ):
         pass
 

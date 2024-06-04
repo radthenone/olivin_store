@@ -1,5 +1,7 @@
 from django.db import transaction
+from ninja import File
 from ninja.constants import NOT_SET
+from ninja.files import UploadedFile
 from ninja_extra import api_controller, route, throttle
 
 from src.auth.schemas import (
@@ -9,6 +11,7 @@ from src.auth.schemas import (
     RefreshTokenSchema,
     RefreshTokenSchemaFailed,
     RefreshTokenSchemaSuccess,
+    RegisterSchema,
     RegisterUserMailSchema,
     RegisterUserMailSchemaSuccess,
     UserCreateFailedSchema,
@@ -19,8 +22,13 @@ from src.auth.services import AuthService
 from src.auth.throttles import RegisterMailThrottle, RegisterThrottle
 from src.core.storage import get_storage
 from src.data.clients import MailClient
-from src.data.handlers import CacheHandler, ImageFileHandler, RegistrationEmailHandler
-from src.data.managers import MailManager
+from src.data.handlers import (
+    CacheHandler,
+    EventHandler,
+    ImageFileHandler,
+    RegistrationEmailHandler,
+)
+from src.data.managers import EventManager, MailManager
 from src.data.storages import RedisStorage
 from src.users.repositories import UserRepository
 
@@ -37,13 +45,18 @@ class AuthController:
     cache_handler = CacheHandler(pool_storage=RedisStorage())
     mail_handler = RegistrationEmailHandler(manager=mail_manager)
     image_handler = ImageFileHandler(storage=get_storage())
+    event_handler = EventHandler(manager=EventManager())
 
     service = AuthService(
         repository,
         cache_handler,
         mail_handler,
         image_handler,
+        event_handler,
     )
+
+    def event_listener(self):
+        self.service.register_profile_response()
 
     @route.post(
         "/register/mail",
@@ -66,16 +79,21 @@ class AuthController:
     @route.post(
         "/register/mail/{token}",
         response={
-            201: UserCreateSuccessSchema,
+            200: UserCreateSuccessSchema,
             400: UserCreateFailedSchema,
         },
     )
     @throttle(RegisterThrottle)
-    @transaction.atomic
-    def register_view(self, user_create: UserCreateSchema, token: str):
+    def register_view(
+        self,
+        token: str,
+        user_register: RegisterSchema,
+        avatar: UploadedFile = File(...),
+    ):
         return self.service.register_user(
             token=token,
-            user_create=user_create,
+            avatar=avatar,
+            user_register=user_register,
         )
 
     @route.post(

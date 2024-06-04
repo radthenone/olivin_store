@@ -107,7 +107,8 @@ def on_bind(protocol, addr, port):
 
 def run_auto():
     from src.core.storage import get_storage
-    from src.data.handlers import ImageFileHandler, TemplateHandler
+    from src.data.handlers import EventHandler, ImageFileHandler, TemplateHandler
+    from src.data.managers import EventManager
 
     image_handler = ImageFileHandler(storage=get_storage())
     image_handler.upload_image(
@@ -116,6 +117,9 @@ def run_auto():
 
     template_handler = TemplateHandler(storage=get_storage())
     template_handler.upload_template("register-mail.html")
+
+    event_handler = EventHandler(manager=EventManager())
+    event_handler.start_event_listener()
 
 
 def register():
