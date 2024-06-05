@@ -4,7 +4,7 @@ from typing import Optional, Union
 
 class IEventHandler(ABC):
     @abstractmethod
-    def pub(self, event_name: str, event_data: dict) -> None:
+    def pub(self, event_name: str, event_data: str | dict) -> None:
         pass
 
     @abstractmethod
@@ -12,5 +12,5 @@ class IEventHandler(ABC):
         pass
 
     @abstractmethod
-    def get(self) -> Optional[dict]:
+    def get(self, event_name: str) -> Optional[dict]:
         pass
