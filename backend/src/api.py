@@ -9,7 +9,7 @@ from src.auth.controllers import AuthController
 from src.common.controllers import CommonController
 from src.core.adds import ApiExtra
 from src.core.interceptors import AuthBearer
-from src.users.controllers import UserController
+from src.users.controllers import ProfileController, UserController
 
 
 @api_controller(auth=NOT_SET, permissions=[], tags=[])
@@ -32,6 +32,7 @@ api.register_controllers(
         CommonController,
         UserController,
         AuthController,
+        ProfileController,
     ]
 )
 
