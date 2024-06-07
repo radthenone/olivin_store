@@ -32,7 +32,8 @@ INSTALLED_TASKS = [
 ]
 
 WORKING_EVENTS = [
-    "src.auth.controllers.auth_controller.AuthController",
+    "src.auth.services.auth_service.AuthService",
+    "src.users.services.profile_service.ProfileService",
 ]
 
 MIDDLEWARE = [
