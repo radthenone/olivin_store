@@ -20,3 +20,5 @@ The initial assumption is that the project is to have:
 - pub/sub system
 - add period/contrib/solar tasks
 - product rating
+
+dzis koncert przerwa
