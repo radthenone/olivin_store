@@ -8,7 +8,7 @@ The initial assumption is that the project is to have:
 - user authorization
 - user management
 - email system
-- photo storage
+- photo storage using amazon or minio s3
 - sql database
 - celery queue system with events communicate
 - payload with preorder
