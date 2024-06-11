@@ -119,7 +119,7 @@ def run_auto():
     template_handler.upload_template("register-mail.html")
 
     event_handler = EventHandler(manager=EventManager())
-    event_handler.start_event_listener()
+    event_handler.start_handlers()
 
 
 def register():

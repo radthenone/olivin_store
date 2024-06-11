@@ -51,12 +51,13 @@ class EventManager(IEventManager):
     def publish(
         self,
         event_name: str,
-        event_data: dict,
+        event_data: str | dict,
     ):
-        json_data = json.dumps(event_data)
+        if isinstance(event_data, dict):
+            event_data = json.dumps(event_data)
         self.redis.publish(
             channel=event_name,
-            message=json_data,
+            message=event_data,
         )
         logger.info("Event %s published", event_name)
 
@@ -94,11 +95,17 @@ class EventManager(IEventManager):
             self.pubsub.unsubscribe(*event_list)
             logger.info("Unsubscribed from events %s", event_list)
 
-    def receive_event(self) -> Optional[dict]:
+    def receive_event(
+        self,
+        event_name: str,
+    ):
         while message := self.pubsub.get_message():
-            if message and message["type"] == "message":
+            if (
+                message
+                and message["type"] == "message"
+                and message["channel"] == event_name
+            ):
                 data = json.loads(message["data"])
                 logger.info("Event received: %s", data)
                 return data
-            time.sleep(0.2)
-        return None
+            time.sleep(0.5)

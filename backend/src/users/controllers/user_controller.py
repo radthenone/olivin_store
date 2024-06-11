@@ -31,14 +31,6 @@ class UserController:
     service = UserService(repository)
     event_handler = EventHandler(manager=EventManager())
 
-    def event_listener(self):
-        self.event_handler.sub(["event"])
-        while True:
-            data = self.event_handler.get()
-            if data:
-                text = data["message"]
-                logger.info(f"event_listener: {text}")
-
     @route.post(
         "/email/update",
         auth=AuthBearer(),

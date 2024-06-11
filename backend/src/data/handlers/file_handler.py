@@ -11,9 +11,15 @@ ObjectType = TypeVar("ObjectType", bound=Union[UUID, str, int])
 
 
 class MediaFileHandler(IFileHandler):
-    def __init__(self, storage: ICloudStorage, folder: str):
+    def __init__(
+        self,
+        storage: ICloudStorage,
+        folder: str,
+        content_type: str = "image/webp",
+    ):
         super().__init__(storage=storage)
         self.folder = folder
+        self.content_type = content_type
         self._set_folder_policy(folder=folder)
 
     def _set_folder_policy(self, folder):
@@ -81,8 +87,6 @@ class MediaFileHandler(IFileHandler):
 
 
 class AvatarFileHandler(MediaFileHandler):
-    content_type = "image/webp"
-
     def __init__(self, storage: ICloudStorage, filename: str = "avatar"):
         super().__init__(storage=storage, folder="avatars")
         self.filename = filename
@@ -91,8 +95,9 @@ class AvatarFileHandler(MediaFileHandler):
         self,
         object_key: Optional[ObjectType] = None,
     ) -> str:
+        filename = f"{self.filename}.{self.content_type.split('/')[1]}"
         return self.get_media(
-            filename=self.filename,
+            filename=filename,
             object_key=object_key,
         )
 
@@ -129,8 +134,9 @@ class ProductFileHandler(MediaFileHandler):
         self,
         object_key: Optional[ObjectType] = None,
     ) -> str:
+        filename = f"{self.filename}.{self.content_type.split('/')[1]}"
         return self.get_media(
-            filename=self.filename,
+            filename=filename,
             object_key=object_key,
         )
 
@@ -157,8 +163,6 @@ class ProductFileHandler(MediaFileHandler):
 
 
 class ImageFileHandler(MediaFileHandler):
-    content_type = "image/webp"
-
     def __init__(self, storage: ICloudStorage):
         super().__init__(storage=storage, folder="media")
 

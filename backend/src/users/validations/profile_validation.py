@@ -37,10 +37,10 @@ def validate_phone(phone: str) -> str:
             detail=f"Invalid phone number {parsed_number.national_number}",
             code=400,
         )
-    return str(parsed_number.national_number)
+    return country_code + str(parsed_number.national_number)
 
 
-def validate_birth_date(birth_date: date) -> date:
+def validate_birth_date(birth_date: date) -> str:
     today_date = datetime.now().date()
 
     try:
@@ -68,4 +68,4 @@ def validate_birth_date(birth_date: date) -> date:
             code=400,
         )
 
-    return birth_date
+    return birth_date.strftime("%Y-%m-%d")

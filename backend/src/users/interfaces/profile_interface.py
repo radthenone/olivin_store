@@ -4,7 +4,7 @@ from uuid import UUID
 
 if TYPE_CHECKING:
     from src.users.schemas import ProfileCreateSchema, ProfileUpdateSchema
-    from src.users.types import ProfileType
+    from src.users.types import ProfileType, UserType
 
 
 class IProfileRepository(ABC):
@@ -19,21 +19,6 @@ class IProfileRepository(ABC):
         self,
         profile_create: "ProfileCreateSchema",
         avatar: str,
-        user_id: UUID,
-    ):
-        pass
-
-    @abstractmethod
-    def update_profile(
-        self,
-        profile_obj: "ProfileType",
-        profile_update: "ProfileUpdateSchema",
-    ):
-        pass
-
-    @abstractmethod
-    def delete_profile(
-        self,
-        profile_obj: "ProfileType",
-    ):
+        user: "UserType",
+    ) -> bool:
         pass

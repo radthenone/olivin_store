@@ -23,6 +23,7 @@ from src.auth.throttles import RegisterMailThrottle, RegisterThrottle
 from src.core.storage import get_storage
 from src.data.clients import MailClient
 from src.data.handlers import (
+    AvatarFileHandler,
     CacheHandler,
     EventHandler,
     ImageFileHandler,
@@ -45,6 +46,7 @@ class AuthController:
     cache_handler = CacheHandler(pool_storage=RedisStorage())
     mail_handler = RegistrationEmailHandler(manager=mail_manager)
     image_handler = ImageFileHandler(storage=get_storage())
+    avatar_handler = AvatarFileHandler(storage=get_storage())
     event_handler = EventHandler(manager=EventManager())
 
     service = AuthService(
@@ -52,11 +54,9 @@ class AuthController:
         cache_handler,
         mail_handler,
         image_handler,
+        avatar_handler,
         event_handler,
     )
-
-    def event_listener(self):
-        self.service.register_profile_response()
 
     @route.post(
         "/register/mail",
@@ -84,6 +84,7 @@ class AuthController:
         },
     )
     @throttle(RegisterThrottle)
+    @transaction.atomic
     def register_view(
         self,
         token: str,

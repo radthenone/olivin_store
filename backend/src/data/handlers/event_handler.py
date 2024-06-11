@@ -1,6 +1,11 @@
+import importlib
+import inspect
 import logging
+import queue
 import threading
-from typing import TYPE_CHECKING, Callable, List, Optional, Union
+import time
+from concurrent.futures import Future, ThreadPoolExecutor
+from typing import TYPE_CHECKING, Callable, Optional, Union
 
 from django.conf import settings
 
@@ -36,31 +41,36 @@ class EventHandler(IEventHandler):
         manager: "IEventManager",
     ):
         self.manager = manager
-        self.methods = None
+        self.executor = ThreadPoolExecutor()
 
     @staticmethod
-    def start_event_listener() -> None:
-        method = "event_listener"
-        if bool(settings.WORKING_EVENTS or settings.WORKING_EVENTS != []):
-            for class_path in settings.WORKING_EVENTS:
-                module_name, class_name = class_path.rsplit(".", 1)
-                module = __import__(module_name, fromlist=[class_name])
-                class_instance = getattr(module, class_name)
-                if hasattr(class_instance, method):
-                    method = getattr(class_instance, method)
-                    listener_thread = threading.Thread(
-                        target=method, args=[class_instance]
+    def start_handlers() -> None:
+        if bool(settings.WORKING_HANDLERS or settings.WORKING_HANDLERS != []):
+            for event_class in settings.WORKING_HANDLERS:
+                module_path, class_name, service_name, method_name = event_class.rsplit(
+                    sep=".", maxsplit=3
+                )
+                cls = getattr(importlib.import_module(module_path), class_name)
+                method = getattr(cls.service, method_name)
+                if method.__name__.startswith("handle"):
+                    event_name = method.__name__.replace("handle_", "")
+                    logger.info(
+                        "Starting %s for event: %s", method.__name__, event_name
                     )
-                    listener_thread.daemon = True
-                    listener_thread.start()
+                    threading.Thread(target=method).start()
 
-    def pub(self, event_name: str, event_data: dict) -> None:
-        self.manager.publish(event_name, event_data)
+    def publish(self, event_name: str, event_data: str | dict) -> None:
+        self.manager.publish(
+            event_name=event_name,
+            event_data=event_data,
+        )
 
-    def sub(self, subs: Union[list[str], str]) -> None:
-        if isinstance(subs, str):
-            subs = [subs]
-        self.manager.subscribe(event_list=subs)
-
-    def get(self) -> Optional[dict]:
-        return self.manager.receive_event()
+    def subscribe(self, event_name: str) -> Optional[dict]:
+        self.manager.subscribe(event_name=event_name)
+        while True:
+            time.sleep(1)
+            event_data = self.manager.receive_event(
+                event_name=event_name,
+            )
+            if event_data:
+                return event_data

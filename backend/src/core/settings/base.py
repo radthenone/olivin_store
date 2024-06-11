@@ -31,9 +31,8 @@ INSTALLED_TASKS = [
     *[f"{app}.tasks" for app in CREATE_APPS],
 ]
 
-WORKING_EVENTS = [
-    "src.auth.services.auth_service.AuthService",
-    "src.users.services.profile_service.ProfileService",
+WORKING_HANDLERS = [
+    "src.users.controllers.profile_controller.ProfileController.service.handle_user_created",
 ]
 
 MIDDLEWARE = [
