@@ -60,10 +60,11 @@ class EventHandler(IEventHandler):
                     threading.Thread(target=method).start()
 
     def publish(self, event_name: str, event_data: str | dict) -> None:
-        self.manager.publish(
-            event_name=event_name,
-            event_data=event_data,
-        )
+        logger.info("Publishing event: %s with data: %s", event_name, event_data)
+        threading.Thread(
+            target=self.manager.publish,
+            args=(event_name, event_data),
+        ).start()
 
     def subscribe(self, event_name: str) -> Optional[dict]:
         self.manager.subscribe(event_name=event_name)
@@ -73,4 +74,5 @@ class EventHandler(IEventHandler):
                 event_name=event_name,
             )
             if event_data:
+                logger.info("Received event: %s with data: %s", event_name, event_data)
                 return event_data

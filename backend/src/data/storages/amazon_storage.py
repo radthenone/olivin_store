@@ -115,18 +115,18 @@ class AmazonS3Storage(ICloudStorage, Storage):
     ) -> bool:
         uploaded_file = None
         try:
-            file = path_file(
+            with path_file(
                 filename=filename,
                 folder=folder,
                 object_key=object_key,
-            )
-            uploaded_file = upload_file(
-                filename=filename,
-                file=file,
-                content_type=content_type
-                if content_type
-                else mimetypes.guess_type(file.name)[0],
-            )
+            ) as file:
+                uploaded_file = upload_file(
+                    filename=filename,
+                    file=file,
+                    content_type=content_type
+                    if content_type
+                    else mimetypes.guess_type(file.name)[0],
+                )
         except Exception as error:
             logger.error(f"Error opening file {filename}: {error}")
 

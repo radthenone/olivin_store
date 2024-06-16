@@ -2,6 +2,7 @@ import errno
 import logging
 import os
 import sys
+import warnings
 from datetime import datetime
 
 from django.conf import settings
@@ -9,6 +10,8 @@ from django.core.servers.basehttp import WSGIServer, run
 from django.core.wsgi import get_wsgi_application
 from django.db import connections
 from django.utils import autoreload
+
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="django.conf")
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +38,33 @@ def check_settings():
         raise ValueError("You must set settings.ALLOWED_HOSTS if DEBUG is False.")
 
 
-def check_migrations_and_connections():
+def create_migrations():
+    from django.apps import apps
     from django.core.management import call_command
 
+    logger.info("Creating migrations for all apps.")
+    for app_config in apps.get_app_configs():
+        try:
+            call_command("makemigrations", app_config.label)
+        except Exception as e:
+            logger.error(f"Error while creating migrations for {app_config.label}: {e}")
+
+
+def check_migrations_and_connections():
+    from django.core.management import call_command
+    from django.db.utils import ProgrammingError
+
     call_command("check")
-    call_command("migrate")
+
+    # Create migrations before applying them
+    create_migrations()
+
+    logger.info("Checking for migrations.")
+    try:
+        call_command("migrate")
+    except ProgrammingError as e:
+        logger.error("Error while applying migrations: %s", e)
+
     for conn in connections.all(initialized_only=True):
         conn.close()
 
@@ -109,7 +134,34 @@ def run_auto():
     from src.core.storage import get_storage
     from src.data.handlers import EventHandler, ImageFileHandler, TemplateHandler
     from src.data.managers import EventManager
+    from src.users.repositories import UserRepository
+    from src.users.schemas import SuperUserCreateSchema
 
+    email = os.getenv("DJANGO_SUPERUSER_EMAIL")
+    password = os.getenv("DJANGO_SUPERUSER_PASSWORD")
+    user_repository = UserRepository()
+
+    if not user_repository.is_superuser():
+        user_super_create = SuperUserCreateSchema(
+            email=email,
+            password=password,
+            is_staff=True,
+            is_superuser=True,
+        )
+        super_user = user_repository.create_superuser(
+            user_super_create=user_super_create,
+        )
+
+        if super_user:
+            logger.info(
+                "Superuser created with email %s",
+                email,
+            )
+    else:
+        logger.info(
+            "Superuser already exists with email %s",
+            email,
+        )
     image_handler = ImageFileHandler(storage=get_storage())
     image_handler.upload_image(
         filename="register.png",

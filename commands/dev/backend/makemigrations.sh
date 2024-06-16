@@ -23,7 +23,7 @@ if [ "$DELETE" = "--delete" ]; then
   source ./commands/dev/load-env.sh
   docker-compose --profile backend run --rm backend sh -c "python manage.py makemigrations"
   docker-compose --profile backend run --rm backend sh -c "python manage.py migrate"
-  docker-compose --profile backend run --rm backend sh -c "python -m src.users.scripts.create_superuser --email '${DJANGO_SUPERUSER_EMAIL}' --password '${DJANGO_SUPERUSER_PASSWORD}'"
+  docker-compose --profile backend run --rm backend sh -c "python manage.py make_superuser --email '${DJANGO_SUPERUSER_EMAIL}' --password '${DJANGO_SUPERUSER_PASSWORD}'"
 else
   docker-compose --profile backend run --rm backend sh -c "python manage.py makemigrations"
   docker-compose --profile backend run --rm backend sh -c "python manage.py migrate"

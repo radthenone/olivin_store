@@ -33,6 +33,7 @@ INSTALLED_TASKS = [
 
 WORKING_HANDLERS = [
     "src.users.controllers.profile_controller.ProfileController.service.handle_user_created",
+    "src.auth.controllers.auth_controller.AuthController.service.handle_profile_created",
 ]
 
 MIDDLEWARE = [
