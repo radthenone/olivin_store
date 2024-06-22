@@ -1,6 +1,5 @@
 import logging
 
-from django.db import transaction
 from django.http import HttpRequest, JsonResponse
 from ninja.constants import NOT_SET
 from ninja_extra import api_controller, route
@@ -40,7 +39,6 @@ class UserController:
             400: EmailUpdateErrorSchema,
         },
     )
-    @transaction.atomic
     def change_email(self, request: HttpRequest, email_update: EmailUpdateSchema):
         return self.service.change_email(
             email_update=email_update,

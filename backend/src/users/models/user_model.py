@@ -12,7 +12,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=uuid.uuid4,
         editable=False,
     )
-    username = models.CharField(max_length=100, unique=True)
+    username = models.CharField(max_length=100, unique=False)
     password = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=100)

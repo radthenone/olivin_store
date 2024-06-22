@@ -1,4 +1,5 @@
-from django.db import transaction
+import time
+
 from ninja import File
 from ninja.constants import NOT_SET
 from ninja.files import UploadedFile
@@ -65,7 +66,6 @@ class AuthController:
         },
     )
     @throttle(RegisterMailThrottle)
-    @transaction.atomic
     def register_mail_view(
         self,
         user_register: RegisterUserMailSchema,
@@ -84,7 +84,6 @@ class AuthController:
         },
     )
     @throttle(RegisterThrottle)
-    @transaction.atomic
     def register_view(
         self,
         token: str,

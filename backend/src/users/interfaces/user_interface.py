@@ -14,6 +14,10 @@ if TYPE_CHECKING:
 
 class IUserRepository(ABC):
     @abstractmethod
+    def is_superuser(self) -> bool:
+        pass
+
+    @abstractmethod
     def get_user_by_id(
         self,
         user_id: UUID,

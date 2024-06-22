@@ -6,10 +6,10 @@ from django.utils import timezone
 
 
 class Profile(models.Model):
-    id = models.AutoField(
+    id = models.UUIDField(
         primary_key=True,
-        editable=False,
         default=uuid.uuid4,
+        editable=False,
     )
     birth_date = models.DateField(
         null=True,

@@ -18,6 +18,9 @@ User = get_user_model()
 
 
 class UserRepository(IUserRepository):
+    def is_superuser(self) -> bool:
+        return User.objects.filter(is_superuser=True).exists()
+
     def get_user_by_id(
         self,
         user_id: UUID,
@@ -51,11 +54,11 @@ class UserRepository(IUserRepository):
     ) -> bool:
         try:
             user_db = User(
-                email=user_create.email,
-                password=user_create.password,
-                username=user_create.username,
-                first_name=user_create.first_name,
-                last_name=user_create.last_name,
+                email=getattr(user_create, "email", None),
+                password=getattr(user_create, "password", None),
+                username=getattr(user_create, "username", None),
+                first_name=getattr(user_create, "first_name", None),
+                last_name=getattr(user_create, "last_name", None),
             )
 
             setattr(user_db, "is_staff", False)
@@ -64,10 +67,10 @@ class UserRepository(IUserRepository):
             user_db.set_password(user_create.password)
             user_db.save()
             logger.info("User created successfully with email %s", user_create.email)
+            return True
         except Exception as error:
             logger.error("Error while creating user %s", error)
             return False
-        return True
 
     def create_superuser(
         self,

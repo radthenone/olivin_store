@@ -150,70 +150,67 @@ class AuthService:
         avatar: UploadedFile,
         user_register: "RegisterSchema",
     ) -> Optional["ORJSONResponse"]:
-        reg_token = self.get_register_token(token=token)
-        if reg_token:
-            email = reg_token["email"]
-            user_create = UserCreateSchema(
-                email=email,
-                **user_register.model_dump(
-                    include={
-                        "username",
-                        "password",
-                        "rewrite_password",
-                        "first_name",
-                        "last_name",
-                    }
-                ),
-            )
-            self.check_user(user=user_create)
-            if self.user_repository.create_user(
-                user_create=user_create,
-            ):
-                if self.user_repository.get_user_by_email(email=email):
-                    user_id = str(
-                        self.user_repository.get_user_by_email(email=email).id
-                    )
-                    profile_create = ProfileCreateSchema(
-                        **user_register.model_dump(
-                            include={
-                                "birth_date",
-                                "phone",
-                            }
-                        ),
-                    )
-                    self.avatar.upload_avatar(file=avatar, object_key=user_id)
-                    self.event.publish(
-                        event_name="user_created",
-                        event_data={
-                            "user_id": user_id,
-                            "profile_create": json.loads(
-                                profile_create.model_dump_json()
-                            ),
-                        },
-                    )
-                    time.sleep(10)
-                    while is_profile_created := self.cache.get_value(
-                        key=f"profile_created:{user_id}"
-                    ):
-                        if is_profile_created:
-                            logger.info("User %s created", user_create.username)
-                            return ORJSONResponse(
-                                data=UserCreateSuccessSchema().model_dump(),
-                                status=201,
-                            )
-                        else:
-                            self.avatar.delete_avatar(object_key=user_id)
-                            logger.info("User %s not created", user_create.username)
-                            return ORJSONResponse(
-                                data=UserCreateFailedSchema().model_dump(),
-                                status=400,
-                            )
+        register_token = self.get_register_token(token=token)
+        if not register_token:
+            logger.info("Token %s does not exist", token)
+            raise APIException("Token does not exist", code=400)
 
+        email = register_token["email"]
+        user_create = UserCreateSchema(
+            email=email,
+            **user_register.model_dump(
+                include={
+                    "username",
+                    "password",
+                    "rewrite_password",
+                    "first_name",
+                    "last_name",
+                }
+            ),
+        )
+        self.check_user(user=user_create)
+        if self.user_repository.create_user(user_create=user_create):
+            if self.user_repository.get_user_by_email(email=email):
+                user_id = str(self.user_repository.get_user_by_email(email=email).id)
+                profile_create = ProfileCreateSchema(
+                    **user_register.model_dump(
+                        include={
+                            "birth_date",
+                            "phone",
+                        }
+                    ),
+                )
+                self.avatar.upload_avatar(file=avatar, object_key=user_id)
+                self.event.publish(
+                    event_name="user_created",
+                    event_data={
+                        "user_id": user_id,
+                        "profile_create": json.loads(profile_create.model_dump_json()),
+                    },
+                )
+                logger.info("User %s created", user_create.username)
+                return ORJSONResponse(
+                    data=UserCreateSuccessSchema().model_dump(),
+                    status=201,
+                )
         logger.info("User %s not created", user_register.username)
         return ORJSONResponse(
             data=UserCreateFailedSchema().model_dump(),
             status=400,
         )
+
+    def handle_profile_created(self):
+        while True:
+            event_data = self.event.subscribe("profile_created")
+            if event_data:
+                if event_data["user_id"] and event_data["is_created"]:
+                    user = self.user_repository.get_user_by_id(
+                        user_id=event_data["user_id"],
+                    )
+                    is_created = event_data["is_created"]
+                    if not is_created:
+                        self.user_repository.delete_user(user_id=user.id)
+                        logger.info("User %s deleted", user.username)
 
     def login_user(
         self,

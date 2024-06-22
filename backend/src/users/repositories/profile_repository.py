@@ -1,8 +1,9 @@
+import json
 import logging
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
-from django.db import transaction
+from django.db import IntegrityError
 
 from src.users.interfaces import IProfileRepository
 from src.users.models import Profile
@@ -21,21 +22,19 @@ class ProfileRepository(IProfileRepository):
     ) -> Optional["ProfileType"]:
         return Profile.objects.get(user__id=user_id)
 
-    @transaction.atomic
     def create_profile(
         self,
         profile_create: "ProfileCreateSchema",
         avatar: str,
         user: "UserType",
     ) -> bool:
+        profile_data = json.loads(profile_create.model_dump_json())
+        profile_data.update({"avatar": avatar, "user": user})
+
         try:
-            Profile.objects.create(
-                **profile_create.model_dump(),
-                avatar=avatar,
-                user=user,
-            )
+            Profile.objects.create(**profile_data)
             logger.info("create_profile: %s", user.username)
             return True
-        except Exception as e:
+        except IntegrityError as e:
             logger.exception("create_profile: %s", e)
             return False
