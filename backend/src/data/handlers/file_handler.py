@@ -83,6 +83,7 @@ class MediaFileHandler(IFileHandler):
             filename=filename,
             folder=self.folder,
             object_key=object_key,
+            content_type=self.content_type,
         )
 
 

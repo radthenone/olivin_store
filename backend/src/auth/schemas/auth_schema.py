@@ -38,7 +38,7 @@ class RegisterUserMailSchema(BaseModel):
     )
 
 
-class RegisterUserMailSchemaSuccess(BaseModel):
+class RegisterUrlSchema(BaseModel):
     url: str
 
 
@@ -93,8 +93,7 @@ class RegisterSchema(PasswordsMatchSchema):
     username: Annotated[str, BeforeValidator(validate_username)]
     first_name: str
     last_name: str
-    birth_date: Annotated[Optional[date], BeforeValidator(validate_birth_date)] = None
-    phone: Annotated[Optional[str], BeforeValidator(validate_phone)] = None
+    birth_date: Annotated[Optional[str], BeforeValidator(validate_birth_date)] = None
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -105,7 +104,6 @@ class RegisterSchema(PasswordsMatchSchema):
                 "first_name",
                 "last_name",
                 "birth_date",
-                "phone",
             ],
             "properties": {
                 "password": {
@@ -137,10 +135,6 @@ class RegisterSchema(PasswordsMatchSchema):
                     "type": "string",
                     "format": "date",
                 },
-                "phone": {
-                    "type": "string",
-                    "format": "phone",
-                },
             },
             "description": "Register schema",
             "title": "Register schema",
@@ -151,66 +145,12 @@ class RegisterSchema(PasswordsMatchSchema):
                 "first_name": "first_name",
                 "last_name": "last_name",
                 "birth_date": "1990-01-01",
-                "phone": "+48510100100",
             },
         }
     )
 
 
-class UserCreateSchema(PasswordsMatchSchema):
-    username: Annotated[str, BeforeValidator(validate_username)]
-    email: Annotated[str, BeforeValidator(validate_email)] = None
-    first_name: str
-    last_name: str
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "required": ["password", "email", "rewrite_password", "username"],
-            "properties": {
-                "password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "format": "password",
-                },
-                "rewrite_password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "format": "password",
-                },
-                "username": {
-                    "type": "string",
-                    "minLength": 3,
-                    "maxLength": 16,
-                },
-                "first_name": {
-                    "type": "string",
-                    "minLength": 3,
-                    "maxLength": 16,
-                },
-                "last_name": {
-                    "type": "string",
-                    "minLength": 3,
-                    "maxLength": 16,
-                },
-                "email": {
-                    "type": "string",
-                    "format": "email",
-                },
-            },
-            "description": "User create schema",
-            "title": "User create schema",
-            "example": {
-                "password": "Password12345!",
-                "rewrite_password": "Password12345!",
-                "username": "username",
-                "first_name": "first_name",
-                "last_name": "last_name",
-            },
-        }
-    )
-
-
-class UserCreateSuccessSchema(BaseModel):
+class RegisterSuccessSchema(BaseModel):
     message: str = "User created successfully"
 
     model_config = ConfigDict(

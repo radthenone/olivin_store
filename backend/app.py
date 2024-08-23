@@ -1,3 +1,4 @@
+import argparse
 import errno
 import logging
 import os
@@ -5,7 +6,9 @@ import sys
 import warnings
 from datetime import datetime
 
+import uvicorn
 from django.conf import settings
+from django.core.asgi import get_asgi_application
 from django.core.servers.basehttp import WSGIServer, run
 from django.core.wsgi import get_wsgi_application
 from django.db import connections
@@ -22,15 +25,23 @@ os.environ.setdefault(
 
 
 def setup_django():
-    (os.getenv("DJANGO_SETTINGS_MODULE", "src.core.settings.dev"),)
+    os.environ.setdefault(
+        "DJANGO_SETTINGS_MODULE",
+        os.getenv("DJANGO_SETTINGS_MODULE", "src.core.settings.dev"),
+    )
     import django
 
     django.setup()
 
 
-def get_handler():
+def get_wsgi_handler():
     """Return the default WSGI handler for the runner."""
     return get_wsgi_application()
+
+
+def get_asgi_handler():
+    """Return the default ASGI handler for the runner."""
+    return get_asgi_application()
 
 
 def check_settings():
@@ -69,16 +80,24 @@ def check_migrations_and_connections():
         conn.close()
 
 
-def start_server(addr, port, use_reloader, threading, protocol):
+def start_server(mode, addr, port, use_reloader, threading, protocol):
     if use_reloader:
-        autoreload.run_with_reloader(inner_run, addr, port, threading, protocol)
+        if mode == "wsgi":
+            autoreload.run_with_reloader(
+                run_wsgi_server, addr, port, threading, protocol
+            )
+        else:
+            autoreload.run_with_reloader(run_asgi_server, addr, port)
     else:
-        inner_run(addr, port, threading, protocol)
+        if mode == "wsgi":
+            run_wsgi_server(addr, port, threading, protocol)
+        else:
+            run_asgi_server(addr, port)
 
 
-def inner_run(addr, port, threading, protocol):
+def run_wsgi_server(addr, port, threading, protocol):
     try:
-        handler = get_handler()
+        handler = get_wsgi_handler()
         run(
             addr,
             int(port),
@@ -88,6 +107,22 @@ def inner_run(addr, port, threading, protocol):
             on_bind=on_bind(protocol, addr, port),
             server_cls=WSGIServer,
         )
+        logger.info("WSGI server started on %s:%s", addr, port)
+    except OSError as e:
+        handle_error(e)
+    except KeyboardInterrupt:
+        sys.exit(0)
+
+
+def run_asgi_server(addr, port):
+    try:
+        uvicorn.run(
+            "src.core.asgi:application",
+            host=addr,
+            port=int(port),
+            log_level="info",
+        )
+        logger.info("ASGI server started on %s:%s", addr, port)
     except OSError as e:
         handle_error(e)
     except KeyboardInterrupt:
@@ -106,21 +141,15 @@ def handle_error(e):
 
 
 def on_bind(protocol, addr, port):
+    from django import get_version
+
     quit_command = "CTRL-BREAK" if sys.platform == "win32" else "CONTROL-C"
 
     now = datetime.now().strftime("%B %d, %Y - %X")
 
-    if "django" in settings.SETTINGS_MODULE:
-        from django import get_version
-
-        version = get_version()
-
-    else:
-        version = "unknown"
-
     logger.info("Running Django: %s", now)
     logger.info(
-        "Django version %s using settings %s", version, settings.SETTINGS_MODULE
+        "Django version %s using settings %s", get_version(), settings.SETTINGS_MODULE
     )
     logger.info("Starting development server on %s://%s:%s", protocol, addr, port)
 
@@ -130,37 +159,52 @@ def on_bind(protocol, addr, port):
     )
 
 
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group(required=True)
+
+    group.add_argument("--wsgi", action="store_true", help="Run with WSGI")
+
+    group.add_argument("--asgi", action="store_true", help="Run with ASGI")
+
+    args = parser.parse_args()
+
+    if args.wsgi:
+        return "wsgi"
+    elif args.asgi:
+        return "asgi"
+
+
 def run_auto():
     from src.core.storage import get_storage
     from src.data.handlers import EventHandler, ImageFileHandler, TemplateHandler
     from src.data.managers import EventManager
     from src.users.repositories import UserRepository
     from src.users.schemas import SuperUserCreateSchema
+    from src.users.services import UserService
 
-    email = os.getenv("DJANGO_SUPERUSER_EMAIL")
-    password = os.getenv("DJANGO_SUPERUSER_PASSWORD")
-    user_repository = UserRepository()
-
-    if not user_repository.is_superuser():
-        user_super_create = SuperUserCreateSchema(
-            email=email,
-            password=password,
+    user_service = UserService(
+        repository=UserRepository(),
+    )
+    if not user_service.is_superuser_exists():
+        super_user_create_schema = SuperUserCreateSchema(
+            email=os.getenv("DJANGO_SUPERUSER_EMAIL"),
+            password=os.getenv("DJANGO_SUPERUSER_PASSWORD"),
             is_staff=True,
             is_superuser=True,
         )
-        super_user = user_repository.create_superuser(
-            user_super_create=user_super_create,
+        super_user = user_service.create_superuser(
+            super_user_create_schema=super_user_create_schema,
         )
 
-        if super_user:
-            logger.info(
-                "Superuser created with email %s",
-                email,
-            )
+        logger.info(
+            "Superuser created with email [blue]%s[/]",
+            super_user.email,
+            extra={"markup": True},
+        )
     else:
         logger.info(
-            "Superuser already exists with email %s",
-            email,
+            "Superuser already exists",
         )
     image_handler = ImageFileHandler(storage=get_storage())
     image_handler.upload_image(
@@ -171,11 +215,13 @@ def run_auto():
     template_handler.upload_template("register-mail.html")
 
     event_handler = EventHandler(manager=EventManager())
+    # event_handler.start_subscribers()
     event_handler.start_handlers()
 
 
 def register():
     setup_django()
+    mode = parse_arguments()
     addr = getattr(settings, "DJANGO_HOST", "127.0.0.1")
     port = getattr(settings, "DJANGO_PORT", 8000)
     protocol = "https" if getattr(settings, "DJANGO_USE_HTTPS", False) else "http"
@@ -187,7 +233,7 @@ def register():
         check_migrations_and_connections()
         run_auto()
 
-    start_server(addr, port, use_reloader, threading, protocol)
+    start_server(mode, addr, port, use_reloader, threading, protocol)
 
 
 if __name__ == "__main__":

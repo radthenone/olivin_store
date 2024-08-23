@@ -65,6 +65,7 @@ class ICloudStorage(ABC):
         filename: str,
         folder: Optional[str] = None,
         object_key: Optional[ObjectType] = None,
+        content_type: Optional[str] = None,
     ) -> bool:
         pass
 

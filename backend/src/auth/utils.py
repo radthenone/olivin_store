@@ -1,11 +1,14 @@
 import logging
 import uuid
 from datetime import datetime, timedelta
+from typing import Optional
 
 import jwt
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
+from ninja_extra.exceptions import APIException
 
+from src.auth import errors as auth_errors
 from src.auth.errors import (
     InvalidCredentials,
     InvalidToken,
@@ -28,7 +31,7 @@ def hash_password(password: str) -> str:
     return password
 
 
-def create_jwt_token(data: dict, expires_delta: timedelta) -> dict:
+def create_jwt_token(data: dict, expires_delta: timedelta) -> str:
     to_encode = data.copy()
 
     to_encode.update(
@@ -41,11 +44,10 @@ def create_jwt_token(data: dict, expires_delta: timedelta) -> dict:
     encoded_jwt = jwt.encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
-    logger.info("Token created: %s", encoded_jwt)
     return encoded_jwt
 
 
-def decode_jwt_token(token: str) -> dict:
+def decode_jwt_token(token: str) -> Optional[dict]:
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -58,14 +60,16 @@ def decode_jwt_token(token: str) -> dict:
         raise InvalidToken
     except jwt.PyJWTError:
         raise InvalidCredentials
+    except APIException:
+        raise auth_errors.InvalidToken
 
 
 def get_access_token(
     username: str,
     user_id: uuid.UUID,
     token_type: str = "access",
-) -> dict:
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+) -> str:
+    access_token_expires = timedelta(minutes=float(settings.ACCESS_TOKEN_EXPIRE))
     access_token = create_jwt_token(
         data={
             "username": username,
@@ -74,7 +78,12 @@ def get_access_token(
         },
         expires_delta=access_token_expires,
     )
-    logger.info("Access token created: %s", access_token)
+    logger.info(
+        "Access token created: [green]%s[/] for [blue]%s[/] minutes",
+        access_token,
+        int(access_token_expires.total_seconds()) // 60,
+        extra={"markup": True},
+    )
     return access_token
 
 
@@ -82,8 +91,8 @@ def get_refresh_token(
     username: str,
     user_id: uuid.UUID,
     token_type: str = "refresh",
-) -> dict:
-    refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+) -> str:
+    refresh_token_expires = timedelta(minutes=float(settings.REFRESH_TOKEN_EXPIRE))
     refresh_token = create_jwt_token(
         data={
             "username": username,
@@ -92,7 +101,12 @@ def get_refresh_token(
         },
         expires_delta=refresh_token_expires,
     )
-    logger.info("Refresh token created: %s", refresh_token)
+    logger.info(
+        "Refresh token created: [green]%s[/] for [blue]%s[/] minutes",
+        refresh_token,
+        int(refresh_token_expires.total_seconds()) // 60,
+        extra={"markup": True},
+    )
     return refresh_token
 
 
@@ -104,7 +118,6 @@ def encode_jwt_token(username: str, user_id: uuid.UUID) -> dict:
         "refresh_token": refresh_token,
         "token_type": "bearer",
     }
-    logger.info("Tokens set: %s", data)
     return data
 
 

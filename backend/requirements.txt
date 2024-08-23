@@ -21,16 +21,22 @@ botocore==1.34.105
     # via
     #   boto3
     #   s3transfer
-celery==5.3.6
+celery==5.4.0
     # via
     #   django-celery-beat
     #   flower
 certifi==2024.2.2
-    # via minio
+    # via
+    #   minio
+    #   requests
 cffi==1.16.0
-    # via argon2-cffi-bindings
+    # via
+    #   argon2-cffi-bindings
+    #   cryptography
 cfgv==3.4.0
     # via pre-commit
+charset-normalizer==3.3.2
+    # via requests
 click==8.1.7
     # via
     #   celery
@@ -50,7 +56,11 @@ contextlib2==21.6.0
     # via django-ninja-extra
 cron-descriptor==1.4.3
     # via django-celery-beat
+cryptography==42.0.8
+    # via pyjwt
 dependency-injector==4.41.0
+deprecated==1.2.14
+    # via vonage
 distlib==0.3.8
     # via virtualenv
 django==5.0.6
@@ -89,7 +99,9 @@ humanize==4.9.0
 identify==2.5.35
     # via pre-commit
 idna==3.6
-    # via email-validator
+    # via
+    #   email-validator
+    #   requests
 injector==0.21.0
     # via django-ninja-extra
 jmespath==1.0.1
@@ -107,6 +119,8 @@ nodeenv==1.8.0
     # via pre-commit
 orjson==3.10.0
 phonenumbers==8.13.36
+pillow==10.3.0
+pip==24.0
 platformdirs==4.2.0
     # via virtualenv
 pre-commit==3.7.0
@@ -123,11 +137,14 @@ pydantic==2.7.1
     # via
     #   django-ninja
     #   django-pydantic-field
+    #   vonage
+    #   vonage-utils
 pydantic-core==2.18.2
     # via pydantic
 pygments==2.17.2
     # via rich
 pyjwt==2.8.0
+    # via vonage-jwt
 python-crontab==3.0.0
     # via django-celery-beat
 python-dateutil==2.9.0.post0
@@ -137,11 +154,15 @@ python-dateutil==2.9.0.post0
     #   python-crontab
 python-dotenv==1.0.1
 pytz==2024.1
-    # via flower
+    # via
+    #   flower
+    #   vonage
 pyyaml==6.0.1
     # via pre-commit
-redis==5.0.3
+redis==5.0.8
     # via django-redis
+requests==2.32.3
+    # via vonage
 rich==13.7.1
 ruff==0.4.1
 s3transfer==0.10.1
@@ -162,6 +183,7 @@ typing-extensions==4.11.0
     #   minio
     #   pydantic
     #   pydantic-core
+    #   vonage-utils
 tzdata==2024.1
     # via
     #   celery
@@ -171,6 +193,7 @@ urllib3==2.2.1
     # via
     #   botocore
     #   minio
+    #   requests
 uvicorn==0.27.1
 vine==5.1.0
     # via
@@ -179,5 +202,12 @@ vine==5.1.0
     #   kombu
 virtualenv==20.25.1
     # via pre-commit
+vonage==3.16.0
+vonage-jwt==1.1.1
+    # via vonage
+vonage-utils==1.1.2
+    # via vonage-jwt
 wcwidth==0.2.13
     # via prompt-toolkit
+wrapt==1.16.0
+    # via deprecated

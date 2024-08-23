@@ -9,7 +9,7 @@ StorageType = TypeVar("StorageType", bound=Union["MinioStorage", "AmazonS3Storag
 
 
 def get_storage():
-    if settings.USE_S3_AMAZON:
+    if settings.DEBUG_ON:
         aws_client = AmazonClient(
             access_key=settings.AWS_ACCESS_KEY,
             secret_key=settings.AWS_SECRET_KEY,

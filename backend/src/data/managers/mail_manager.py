@@ -57,11 +57,7 @@ class MailManager:
         files: Optional[List[str]] = None,
         fail_silently: bool = False,
     ) -> bool:
-        smtp = self.client.connect()
-        if not smtp:
-            if not fail_silently:
-                raise smtplib.SMTPException("Failed to connect to the SMTP server")
-            return False
+        client = self.client.connect()
         try:
             html_content = self._render_html(template_name, context)
 
@@ -74,7 +70,7 @@ class MailManager:
             if files:
                 self._attach_files(msg, files)
 
-            smtp.sendmail(from_email, to_email, msg.as_string())
+            client.sendmail(from_email, to_email, msg.as_string())
             logger.info("Successfully sent email")
             return True
 
@@ -83,5 +79,6 @@ class MailManager:
             if not fail_silently:
                 raise
             return False
+
         finally:
             self.client.disconnect()

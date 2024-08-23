@@ -1,3 +1,4 @@
+import logging.config
 import os
 import uuid
 import warnings
@@ -71,6 +72,7 @@ LOGGING = {
     },
     "formatters": {
         "rich": {"datefmt": "[%X]"},
+        "simple": {"format": "%(levelname)s %(message)s"},
     },
     "handlers": {
         "console": {
@@ -84,8 +86,13 @@ LOGGING = {
     },
     "loggers": {
         "django": {
-            "handlers": [],
+            "handlers": ["console"],
             "level": "INFO",
+        },
+        "celery": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
         },
     },
     "root": {
@@ -93,7 +100,7 @@ LOGGING = {
         "level": "INFO",
     },
 }
-
+logging.config.dictConfig(LOGGING)
 
 # CELERY
 # ------------------------------------------------------------------------------
@@ -107,7 +114,7 @@ CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-extended
 CELERY_RESULT_EXTENDED = True
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-time-limit
+# https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-time-limit1
 CELERY_TASK_TIME_LIMIT = 5 * 60
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-soft-time-limit
 CELERY_TASK_SOFT_TIME_LIMIT = 60
@@ -133,26 +140,25 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", False)
 
 # JWT
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
-REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 180)
-
+ACCESS_TOKEN_EXPIRE = os.getenv("ACCESS_TOKEN_EXPIRE", 60)
+REFRESH_TOKEN_EXPIRE = os.getenv("REFRESH_TOKEN_EXPIRE", 1440)
 
 # STATIC & MEDIA
 # ------------------------------------------------------------------------------
 # BUCKET S3 SETTINGS
-USE_S3_AMAZON = bool(int(os.getenv("USE_S3_AMAZON", 0)))
+DEBUG_ON = bool(int(os.getenv("USE_S3_AMAZON", 0)))
 BUCKET_NAME = os.getenv("BUCKET_NAME", "olivin-d2e3e393-9767-413b-b6d5-cf8fd6166de0")
 STATIC_PATH = "static"
 MEDIA_PATH = "media"
 # AWS S3
-if USE_S3_AMAZON:
+if DEBUG_ON:
     AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY", "")
     AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY", "")
     AWS_REGION_NAME = os.getenv("AWS_REGION_NAME", "")
     STATIC_URL = f"https://{BUCKET_NAME}.s3.amazonaws.com/{STATIC_PATH}/"
     MEDIA_URL = f"https://{BUCKET_NAME}.s3.amazonaws.com/{MEDIA_PATH}/"
 
-if not USE_S3_AMAZON:
+if not DEBUG_ON:
     MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER", "minioadmin")
     MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin")
     MINIO_HOST = os.getenv("MINIO_HOST", "localhost")
@@ -170,6 +176,10 @@ static_dir = os.path.join(BASE_DIR, "static")
 if not os.path.exists(static_dir):
     os.makedirs(static_dir)
 STATICFILES_DIRS = [static_dir]
+
+# SMS VONAGE
+VONAGE_API_KEY = os.getenv("VONAGE_API_KEY", "")
+VONAGE_API_SECRET = os.getenv("VONAGE_API_SECRET", "")
 
 # WARNINGS
 # ------------------------------------------------------------------------------

@@ -1,14 +1,18 @@
 import logging
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from django.contrib.auth import get_user_model
 from django.http import HttpRequest
 from ninja.security import HttpBearer
+from ninja_extra.exceptions import APIException
 
 from src.auth.errors import InvalidToken, UserNotFound
 from src.auth.utils import decode_jwt_token
 from src.common.utils import pydantic_model
 from src.users.repositories import UserRepository
+
+if TYPE_CHECKING:
+    from src.users.types import UserType
 
 logger = logging.getLogger(__name__)
 
@@ -35,28 +39,32 @@ def get_token_payload(request: HttpRequest) -> Optional[dict]:
         decode_token = decode_jwt_token(token)
         if decode_token:
             return decode_token
-    except Exception as error:
-        logger.exception(error)
+    except APIException:
         raise InvalidToken
 
 
 class AuthBearer(HttpBearer):
-    repository = UserRepository()
+    user_repository = UserRepository()
 
     def get_user(self, request: HttpRequest, user_id: Any) -> None:
         try:
-            user = self.repository.get_user_by_id(user_id=user_id)
+            user = self.user_repository.get_user_by_id(user_id=user_id)
             request.user = user
-        except Exception as error:
-            logger.exception(error)
+        except APIException:
             raise UserNotFound
 
-    def authenticate(self, request: HttpRequest, token: str) -> Optional[dict]:
+    def authenticate(
+        self, request: HttpRequest, token: Optional[str]
+    ) -> Optional[dict]:
+        if not token:
+            raise InvalidToken
         try:
             decode_token = decode_jwt_token(token)
-            if decode_token:
-                self.get_user(request=request, user_id=decode_token.get("user_id"))
-                return decode_token
-        except Exception as error:
-            logger.exception(error)
+            if not decode_token:
+                raise InvalidToken
+
+            user_id = decode_token.get("user_id")
+            self.get_user(request=request, user_id=user_id)
+            return decode_token
+        except APIException:
             raise InvalidToken

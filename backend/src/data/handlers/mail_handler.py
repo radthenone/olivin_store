@@ -16,17 +16,18 @@ class RegistrationEmailHandler(IRegistrationEmailHandler):
     def send_registration_email(
         self,
         to_email: str,
+        subject: str = "Welcome to our platform!",
+        template_name: str = "register-mail",
+        from_email: Optional[str] = settings.EMAIL_HOST_USER,
         context: Optional[dict] = None,
     ) -> bool:
-        subject = "Welcome to our platform!"
-        template_name = "register-mail"
         to_email = [to_email]
         return self.manager.send_mail(
             subject=subject,
             template_name=template_name,
             context=context,
             to_email=to_email,
-            from_email=settings.EMAIL_HOST_USER,
+            from_email=from_email,
             files=None,
             fail_silently=False,
         )

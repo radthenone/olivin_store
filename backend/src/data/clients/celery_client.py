@@ -25,7 +25,6 @@ class CeleryClient(IClient):
         broker_url: str,
         result_backend: str,
         timezone: str,
-        is_events: bool = True,
         *args,
         **kwargs,
     ):
@@ -34,7 +33,6 @@ class CeleryClient(IClient):
             broker_url=broker_url,
             result_backend=result_backend,
             timezone=timezone,
-            is_events=is_events,
             *args,
             **kwargs,
         )
@@ -45,21 +43,25 @@ class CeleryClient(IClient):
         broker_url: str,
         result_backend: str,
         timezone: str,
-        is_events: bool = True,
         *args,
         **kwargs,
     ) -> Celery:
         try:
             celery = Celery(
-                main=main_settings,
-                broker_url=broker_url,
-                result_backend=result_backend,
-                is_events=is_events,
+                main="src.core.celery",
+                broker=broker_url,
+                backend=result_backend,
                 timezone=timezone,
                 **kwargs,
             )
             celery.config_from_object(main_settings, namespace="CELERY")
+
             celery.conf.update(
+                task_serializer="json",
+                accept_content=["json"],
+                result_serializer="json",
+                timezone="Europe/Oslo",
+                enable_utc=True,
                 task_queues={
                     "tasks": Queue(
                         "tasks",
@@ -81,22 +83,24 @@ class CeleryClient(IClient):
                     ),
                 },
                 result_extended=kwargs.get(
-                    "result_extended", settings.CELERY_RESULT_EXTENDED
+                    "result_extended", celery.conf.result_extended
                 ),
                 task_time_limit=kwargs.get(
-                    "task_time_limit", settings.CELERY_TASK_TIME_LIMIT
+                    "task_time_limit", celery.conf.task_time_limit
                 ),
                 task_soft_time_limit=kwargs.get(
-                    "task_soft_time_limit", settings.CELERY_TASK_SOFT_TIME_LIMIT
+                    "task_soft_time_limit", celery.conf.task_soft_time_limit
                 ),
             )
+
             celery.autodiscover_tasks(settings.INSTALLED_TASKS)
 
             self.celery = celery
             return self.celery
 
         except CeleryError as error:
-            logger.error(error)
+            logger.error(f"Failed to connect to Celery: {error}")
+            raise
 
     def disconnect(self, *args, **kwargs) -> None:
         if self.celery:

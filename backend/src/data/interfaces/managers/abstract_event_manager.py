@@ -28,5 +28,16 @@ class IEventManager(ABC):
         pass
 
     @abstractmethod
-    def receive_event(self, event_name: str) -> Optional[dict]:
+    def receive(
+        self,
+        event_name: str,
+        timeout: Optional[None | float] = None,
+    ) -> Optional[dict]:
+        pass
+
+    @abstractmethod
+    def is_subscribed(
+        self,
+        event_name: str,
+    ) -> bool:
         pass

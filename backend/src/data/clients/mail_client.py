@@ -23,23 +23,24 @@ class MailClient(IClient):
     user = settings.EMAIL_HOST_USER
     password = settings.EMAIL_HOST_PASSWORD
 
-    def connect(self, **kwargs) -> Optional[smtplib.SMTP]:
-        if self.client:
-            return self.client
-
-        try:
-            self.client = smtplib.SMTP(self.host, self.port)
-            logger.info("%s", self.client.ehlo())
-
-            if all([bool(x) for x in [self.user, self.password]]):
-                self.client.login(self.user, self.password)
-
-            logger.info("Successfully connected to the SMTP server")
-            return self.client
-
-        except smtplib.SMTPException as error:
-            logger.error(f"Failed to send email: {str(error)}")
-            return None
+    def connect(self, retries=3, **kwargs) -> Optional[smtplib.SMTP]:
+        attempt = 0
+        while attempt < retries:
+            try:
+                client = smtplib.SMTP(self.host, self.port)
+                if self.user and self.password:
+                    client.login(self.user, self.password)
+                self.client = client
+                logger.info("Successfully connected to the SMTP server")
+                return self.client
+            except smtplib.SMTPException as error:
+                attempt += 1
+                logger.error(
+                    f"Attempt {attempt} - Failed to connect to SMTP server: {str(error)}"
+                )
+                if attempt == retries:
+                    return None
+        return None
 
     def disconnect(self, **kwargs) -> None:
         if self.client:

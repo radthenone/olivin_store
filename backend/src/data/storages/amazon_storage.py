@@ -14,6 +14,10 @@ from src.data.clients import AmazonClient
 from src.data.interfaces import ICloudStorage
 from src.data.utils import (
     clean_name,
+    get_content_type,
+    get_extension,
+    get_file_io,
+    get_file_size,
     path_file,
     upload_file,
 )
@@ -230,15 +234,17 @@ class AmazonS3Storage(ICloudStorage, Storage):
         filename: str,
         folder: Optional[str] = None,
         object_key: Optional[ObjectType] = None,
+        content_type: Optional[str] = None,
     ) -> bool:
         full_object_path = self.get_object_key(
             filename=filename,
             folder=folder,
             object_key=object_key,
         )
+        ext = get_extension(content_type)
         try:
             self.bucket.delete_object(
-                Key=full_object_path,
+                Key=full_object_path + ext,
             )
             return True
         except APIException as error:

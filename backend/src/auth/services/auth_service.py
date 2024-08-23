@@ -1,49 +1,35 @@
-import json
-import time
 import uuid
 from datetime import timedelta
 from logging import getLogger
 from typing import TYPE_CHECKING, Optional, cast
 
 from django.contrib.auth.hashers import check_password
-from ninja import UploadedFile
+from django.db import transaction
 from ninja_extra.exceptions import APIException
 
-from src.auth.errors import InvalidToken, RefreshTokenRequired, UnAuthorized
-from src.auth.schemas import (
-    LoginSchemaFailed,
-    LoginSchemaSuccess,
-    RefreshTokenSchemaFailed,
-    RefreshTokenSchemaSuccess,
-    RegisterSchema,
-    RegisterUserMailSchema,
-    RegisterUserMailSchemaSuccess,
-    UserCreateFailedSchema,
-    UserCreateSchema,
-    UserCreateSuccessSchema,
-)
+from src.auth import errors as auth_errors
+from src.auth import schemas as auth_schemas
+from src.auth.tasks import send_registration_email_task
 from src.auth.utils import decode_jwt_token, encode_jwt_token, get_backend_url
 from src.common.responses import ORJSONResponse
-from src.users.errors import (
-    EmailAlreadyExists,
-    UserDoesNotExist,
-    UsernameAlreadyExists,
-)
-from src.users.schemas import ProfileCreateSchema
+from src.common.schemas import MessageSchema
+from src.data.managers.task_manager import TaskManager
+from src.users import errors as users_errors
+from src.users import schemas as users_schemas
 
 if TYPE_CHECKING:
     from src.data.handlers import (  # unused import
-        AvatarFileHandler,
         ImageFileHandler,
     )
     from src.data.interfaces import (
         ICacheHandler,
         IEventHandler,
         IFileHandler,
-        IRegistrationEmailHandler,
     )
-    from src.users.interfaces import IUserRepository
+    from src.users.services import ProfileService, UserService
     from src.users.types import UserType
+
+task_manager = TaskManager(queue="tasks")
 
 logger = getLogger(__name__)
 
@@ -51,37 +37,46 @@ logger = getLogger(__name__)
 class AuthService:
     def __init__(
         self,
-        repository: "IUserRepository",
         cache_handler: "ICacheHandler",
-        mail_handler: "IRegistrationEmailHandler",
-        image_handler: "IFileHandler",
-        avatar_handler: "IFileHandler",
         event_handler: "IEventHandler",
+        image_handler: "IFileHandler",
+        user_service: "UserService",
+        profile_service: "ProfileService",
         *args,
         **kwargs,
     ):
-        self.is_profile_created: bool = False
-        self.user_repository = repository
         self.cache = cache_handler
         self.event = event_handler
-        self.mail = mail_handler
         self.image = cast("ImageFileHandler", image_handler)
-        self.avatar = cast("AvatarFileHandler", avatar_handler)
+        self.user_service = user_service
+        self.profile_service = profile_service
         super().__init__(*args, **kwargs)
 
     def create_register_token(self, token: str, email: str) -> None:
         self.cache.set_value(
             key=token, value={"email": email}, expire=timedelta(minutes=30)
         )
-        logger.info("Token %s created for 30 minutes registration", token)
+        logger.info(
+            "Token [green]%s[/] created for [blue]30[/] minutes registration",
+            token,
+            extra={"markup": True},
+        )
 
     def get_register_token(self, token: str) -> Optional[dict]:
         value = self.cache.get_value(key=token)
         if value:
-            logger.info("Token %s exists", token)
+            logger.info(
+                "Token [green]%s[/] exists",
+                token,
+                extra={"markup": True},
+            )
             return value
-        logger.info("Token %s does not exist", token)
-        return None
+        logger.info(
+            "Token [green]%s[/] does not exist",
+            token,
+            extra={"markup": True},
+        )
+        raise auth_errors.TokenDoesNotExist
 
     @staticmethod
     def generate_register_token() -> str:
@@ -93,72 +88,67 @@ class AuthService:
         username: str,
         password: str,
     ) -> Optional["UserType"]:
-        logger.debug("AuthService.authorized_user")
-        user = self.user_repository.get_user_by_username(username=username)
+        user = self.user_service.get_user_by_username(username=username)
         if user is None:
-            raise UserDoesNotExist
+            raise users_errors.UserDoesNotExist
         if not check_password(password, user.password):
-            raise UnAuthorized
-        logger.info("User %s authorized", user.username)
+            raise auth_errors.UnAuthorized
+        logger.info(
+            "User [blue]%s[/] authorized",
+            user.username,
+            extra={"markup": True},
+        )
         return user
 
     def check_user(self, user) -> None:
-        logger.debug("AuthService.check_user")
         username = getattr(user, "username", None)
         email = getattr(user, "email", None)
 
-        if username and self.user_repository.get_user_by_username(username=username):
-            raise UsernameAlreadyExists
+        if username and self.user_service.get_user_by_username(username=username):
+            raise users_errors.UsernameAlreadyExists
 
-        if email and self.user_repository.get_user_by_email(email=email):
-            raise EmailAlreadyExists
+        if email and self.user_service.get_user_by_email(email=email):
+            raise users_errors.EmailAlreadyExists
 
+    @transaction.atomic
     def register_user_mail(
         self,
-        token: str,
-        user_register: "RegisterUserMailSchema",
-    ) -> Optional["ORJSONResponse"]:
-        if user_register.email:
-            self.create_register_token(token, user_register.email)
+        user_register_mail_schema: "auth_schemas.RegisterUserMailSchema",
+    ) -> Optional["auth_schemas.RegisterUrlSchema"]:
+        token = self.generate_register_token()
+        if user_register_mail_schema.email:
+            self.create_register_token(token, user_register_mail_schema.email)
             add_path = "/auth/register/mail/" + token
             register_url = get_backend_url(add_path=add_path)
             logger.info("Register token: %s created", token)
             image = self.image.get_image("register.webp")
-            if self.mail.send_registration_email(
-                to_email=user_register.email,
-                context={
-                    "url": register_url,
-                    "image": image,
-                },
-            ):
-                logger.info("Email sent to %s", user_register.email)
-                return ORJSONResponse(
-                    data=RegisterUserMailSchemaSuccess(url=register_url).model_dump(),
-                    status=200,
+            transaction.on_commit(
+                lambda: send_registration_email_task.apply_async(
+                    kwargs={
+                        "url": register_url,
+                        "image": image,
+                        "email": user_register_mail_schema.email,
+                    },
                 )
-            else:
-                logger.info("Mail not sent to %s", user_register.email)
-                raise APIException("Mail not sent", code=400)
+            )
+            return auth_schemas.RegisterUrlSchema(url=register_url)
         logger.info(
-            "Email does not exist",
+            "Email [blue]%s[/] does not send",
+            user_register_mail_schema.email,
+            extra={"markup": True},
         )
-        raise APIException("Email does not exist", code=400)
+        raise auth_errors.MailDoesNotSend
 
+    @transaction.atomic
     def register_user(
         self,
         token: str,
-        avatar: UploadedFile,
-        user_register: "RegisterSchema",
-    ) -> Optional["ORJSONResponse"]:
+        register_schema: "auth_schemas.RegisterSchema",
+    ) -> Optional["auth_schemas.RegisterSuccessSchema"]:
         register_token = self.get_register_token(token=token)
-        if not register_token:
-            logger.info("Token %s does not exist", token)
-            raise APIException("Token does not exist", code=400)
-
-        email = register_token["email"]
-        user_create = UserCreateSchema(
-            email=email,
-            **user_register.model_dump(
+        user_create_schema = users_schemas.UserCreateSchema(
+            email=register_token.get("email"),
+            **register_schema.model_dump(
                 include={
                     "username",
                     "password",
@@ -168,98 +158,100 @@ class AuthService:
                 }
             ),
         )
-        self.check_user(user=user_create)
-        if self.user_repository.create_user(user_create=user_create):
-            if self.user_repository.get_user_by_email(email=email):
-                user_id = str(self.user_repository.get_user_by_email(email=email).id)
-                profile_create = ProfileCreateSchema(
-                    **user_register.model_dump(
-                        include={
-                            "birth_date",
-                            "phone",
-                        }
-                    ),
-                )
-                self.avatar.upload_avatar(file=avatar, object_key=user_id)
-                self.event.publish(
-                    event_name="user_created",
-                    event_data={
-                        "user_id": user_id,
-                        "profile_create": json.loads(profile_create.model_dump_json()),
-                    },
-                )
-                logger.info("User %s created", user_create.username)
-                return ORJSONResponse(
-                    data=UserCreateSuccessSchema().model_dump(),
-                    status=201,
-                )
-        logger.info("User %s not created", user_register.username)
-        return ORJSONResponse(
-            data=UserCreateFailedSchema().model_dump(),
-            status=400,
-        )
 
-    def handle_profile_created(self):
-        while True:
-            event_data = self.event.subscribe("profile_created")
-            if event_data:
-                if event_data["user_id"] and event_data["is_created"]:
-                    user = self.user_repository.get_user_by_id(
-                        user_id=event_data["user_id"],
+        self.check_user(user=user_create_schema)
+
+        try:
+            user_id = self.user_service.create_user(
+                user_create=user_create_schema,
+                timeout=1,
+            )
+            user_db = self.user_service.get_user_by_id(user_id=uuid.UUID(user_id))
+            if not user_db:
+                raise users_errors.UserCreateFailed
+
+            profile_create_schema = users_schemas.ProfileCreateSchema(
+                birth_date=register_schema.birth_date,
+            )
+
+            self.event.publish(
+                event_name="user_created",
+                event_data={
+                    "user_id": user_id,
+                    "profile_create_schema": profile_create_schema.model_dump(),
+                },
+            )
+            logger.info("Publishing user_created event for user ID: %s", user_id)
+
+            # Wait for profile creation to complete
+            event_data = self.event.receive(
+                "profile_created", timeout=2, with_subscription=True
+            )
+            if event_data and event_data.get("is_created"):
+                profile_data = event_data.get("profile_data")
+                profile_db = self.profile_service.get_profile_by_id(
+                    profile_id=uuid.UUID(profile_data.get("id")),
+                )
+                if profile_db and user_db:
+                    logger.info(
+                        "User %s created successfully with profile %s",
+                        user_db.to_dict(include=["id", "username", "email"]),
+                        profile_db.to_dict(include=["id", "birth_date"]),
+                        extra={"markup": True},
                     )
-                    is_created = event_data["is_created"]
-                    if not is_created:
-                        self.user_repository.delete_user(user_id=user.id)
-                        logger.info("User %s deleted", user.username)
+                    return auth_schemas.RegisterSuccessSchema()
+            else:
+                logger.info(
+                    "Profile creation failed for user %s, deleting user",
+                    user_db.username,
+                )
+                if self.profile_service.get_profile_by_user_id(
+                    user_id=uuid.UUID(user_id)
+                ):
+                    self.profile_service.delete_profile(user_id=user_id)
+                self.user_service.delete_user(user_id=user_id)
+                raise users_errors.UserCreateFailed
+
+        except APIException as error:
+            logger.error("Error during user registration: %s", str(error))
+            raise users_errors.UserCreateFailed
 
     def login_user(
         self,
         username: str,
         password: str,
-    ) -> Optional["ORJSONResponse"]:
+    ) -> Optional["auth_schemas.LoginSchemaSuccess"]:
         try:
             user = self.authorized_user(username, password)
             token = encode_jwt_token(username=user.username, user_id=user.id)
-            logger.info("User %s logged in", user.username)
-
-            return ORJSONResponse(
-                data=LoginSchemaSuccess(**token).model_dump(),
-                status=200,
+            logger.info(
+                "User [green]%s[/] logged in",
+                user.username,
+                extra={"markup": True},
             )
-        except UnAuthorized:
+            return auth_schemas.LoginSchemaSuccess(**token)
+        except auth_errors.UnAuthorized:
             logger.info("User %s not logged in", username)
-            return ORJSONResponse(
-                data=LoginSchemaFailed().model_dump(),
-                status=401,
-            )
+            raise auth_errors.NotLoggedIn
 
     def refresh_token(
         self,
         refresh_token: str,
-    ) -> Optional["ORJSONResponse"]:
+    ) -> Optional["auth_schemas.RefreshTokenSchemaSuccess"]:
         if not refresh_token:
-            raise RefreshTokenRequired
+            raise auth_errors.RefreshTokenRequired
 
         payload = decode_jwt_token(token=refresh_token)
 
         if not payload:
-            raise InvalidToken
+            raise auth_errors.InvalidToken
         user_id = payload.get("user_id")
-        user = self.user_repository.get_user_by_id(user_id=user_id)
+        user = self.user_service.get_user_by_id(user_id=user_id)
 
         if not user:
-            raise UserDoesNotExist
+            raise users_errors.UserDoesNotExist
 
         token = encode_jwt_token(username=user.username, user_id=user.id)
-        if token:
-            logger.info("User %s refreshed token", user.username)
-            return ORJSONResponse(
-                data=RefreshTokenSchemaSuccess(**token).model_dump(),
-                status=200,
-            )
-
-        logger.info("User %s not refreshed token", user.username)
-        return ORJSONResponse(
-            data=RefreshTokenSchemaFailed().model_dump(),
-            status=401,
-        )
+        if not token:
+            raise auth_errors.InvalidToken
+        return auth_schemas.RefreshTokenSchemaSuccess(**token)

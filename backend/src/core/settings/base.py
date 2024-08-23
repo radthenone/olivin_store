@@ -1,3 +1,5 @@
+from django.apps import apps
+
 from src.core.config import BASE_DIR
 
 DJANGO_APPS = [
@@ -27,13 +29,16 @@ CREATE_APPS = [
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + CREATE_APPS
 
 INSTALLED_TASKS = [
-    "src.data.tasks",
-    *[f"{app}.tasks" for app in CREATE_APPS],
+    "src.data",
+    "src.auth",
+    *[app for app in CREATE_APPS if app.startswith("src.")],
 ]
 
+# EVENT PUB/SUB
+WORKING_SUBSCRIBERS = []
+
 WORKING_HANDLERS = [
-    "src.users.controllers.profile_controller.ProfileController.service.handle_user_created",
-    "src.auth.controllers.auth_controller.AuthController.service.handle_profile_created",
+    "src.users.controllers.UsersController.profile_service.handle_user_created",
 ]
 
 MIDDLEWARE = [

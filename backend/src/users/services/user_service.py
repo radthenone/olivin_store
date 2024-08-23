@@ -1,96 +1,160 @@
-from typing import Optional
+from typing import TYPE_CHECKING, Optional, cast
 from uuid import UUID
 
-from django.forms.models import model_to_dict
 from ninja_extra.exceptions import APIException
 
 from src.auth.utils import check_password
-from src.common.responses import ORJSONResponse
-from src.users.errors import EmailAlreadyExists, WrongPassword
-from src.users.schemas import (
-    EmailUpdateErrorSchema,
-    EmailUpdateSchema,
-    EmailUpdateSuccessSchema,
-    SuperUserCreateErrorSchema,
-    SuperUserCreateSchema,
-    SuperUserCreateSuccessSchema,
-    UserUpdateSchema,
-)
+from src.users import errors as user_errors
+from src.users import schemas as user_schemas
+from src.users.tasks import create_user_task, delete_user_task
+
+if TYPE_CHECKING:
+    from src.data.handlers import AvatarFileHandler  # unused import
+    from src.data.interfaces import (
+        ICacheHandler,
+        IEventHandler,
+        IFileHandler,
+    )
+    from src.users.interfaces import IUserRepository
+    from src.users.types import UserType
 
 
 class UserService:
-    def __init__(self, repository, *args, **kwargs):
+    def __init__(
+        self,
+        repository: "IUserRepository" = None,
+        avatar_handler: "IFileHandler" = None,
+        event_handler: "IEventHandler" = None,
+        cache_handler: "ICacheHandler" = None,
+        *args,
+        **kwargs,
+    ):
         self.user_repository = repository
+        self.event = event_handler
+        self.cache = cache_handler
+        self.avatar = cast("AvatarFileHandler", avatar_handler)
         super().__init__(*args, **kwargs)
+
+    def is_superuser_exists(self) -> bool:
+        return self.user_repository.is_superuser_exists()
+
+    def get_user_by_id(
+        self,
+        user_id: UUID,
+    ) -> Optional["UserType"]:
+        user = self.user_repository.get_user_by_id(user_id)
+        return user
+
+    def get_user_by_email(
+        self,
+        email: str,
+    ) -> Optional["UserType"]:
+        user = self.user_repository.get_user_by_email(email)
+        return user
+
+    def get_user_by_username(
+        self,
+        username: str,
+    ) -> Optional["UserType"]:
+        user = self.user_repository.get_user_by_username(username)
+        return user
+
+    @staticmethod
+    def create_user(
+        user_create: "user_schemas.UserCreateSchema",
+        timeout: Optional[int] = None,
+    ) -> Optional[str]:
+        task = create_user_task.delay(user_create=user_create.model_dump())
+        user_id = task.get(timeout=timeout)
+        if user_id:
+            return user_id
+
+        return None
+
+    @staticmethod
+    def delete_user(user_id: str) -> bool:
+        task = delete_user_task.delay(user_id=user_id)
+        return task.get()
 
     def create_superuser(
         self,
-        user_super_create: "SuperUserCreateSchema",
-    ) -> Optional["ORJSONResponse"]:
+        super_user_create_schema: "user_schemas.SuperUserCreateSchema",
+    ) -> Optional["UserType"]:
         if self.user_repository.get_user_by_email(
-            email=user_super_create.email,
+            email=super_user_create_schema.email,
         ):
-            raise EmailAlreadyExists
+            raise user_errors.EmailAlreadyExists
 
-        if self.user_repository.create_superuser(
-            user_super_create=user_super_create,
-        ):
-            return ORJSONResponse(
-                data=SuperUserCreateSuccessSchema().model_dump(),
-                status=201,
+        try:
+            super_user = self.user_repository.create_superuser(
+                super_user_create_schema=super_user_create_schema,
             )
+            return super_user
 
-        return ORJSONResponse(
-            data=SuperUserCreateErrorSchema().model_dump(),
-            status=400,
+        except APIException:
+            raise user_errors.SuperUserCreateFailed
+
+    def get_user(self, user_id: UUID) -> Optional["user_schemas.UserSchema"]:
+        user = self.user_repository.get_user_by_id(user_id=user_id)
+        if not user:
+            raise user_errors.UserNotFound
+        return user_schemas.UserSchema(
+            **user.to_dict(
+                include=[
+                    "id",
+                    "username",
+                    "email",
+                    "first_name",
+                    "last_name",
+                ]
+            )
         )
 
     def change_email(
         self,
-        email_update: "EmailUpdateSchema",
+        email_update_schema: "user_schemas.EmailUpdateSchema",
         user_id: UUID,
-    ) -> Optional["ORJSONResponse"]:
-        user_obj = self.user_repository.get_user_by_id(user_id=user_id)
-        if not check_password(email_update.old_password, user_obj.password):
-            raise WrongPassword
+    ) -> Optional["user_schemas.EmailUpdateSuccessSchema"]:
+        user_db = self.user_repository.get_user_by_id(user_id=user_id)
+        if not (
+            check_password(email_update_schema.old_password, user_db.password)
+            and email_update_schema.old_email == user_db.email
+            and email_update_schema.email != user_db.email
+        ):
+            raise user_errors.WrongOldEmail
 
-        if email_update.email == user_obj.email:
-            raise APIException(
-                detail="You already have this email",
-                code=400,
-            )
-
-        if email_update.old_email != user_obj.email:
-            raise APIException(
-                detail="Wrong old email",
-                code=400,
-            )
-
-        user_data = self.user_repository.update_user(
-            user_obj=user_obj,
-            user_update=UserUpdateSchema(
-                email=email_update.email,
-                username=user_obj.username,
-                first_name=user_obj.first_name,
-                last_name=user_obj.last_name,
+        user_updated_db = self.user_repository.update_user(
+            user_db=user_db,
+            user_update=user_schemas.UserUpdateSchema(
+                email=email_update_schema.email,
             ),
         )
-        if user_data:
-            return ORJSONResponse(
-                data=EmailUpdateSuccessSchema(
-                    **model_to_dict(
-                        user_data,
-                        fields=[
-                            "email",
-                            "username",
-                            "first_name",
-                            "last_name",
-                        ],
-                    )
-                ).model_dump(),
-                status=200,
+        if user_updated_db:
+            return user_schemas.EmailUpdateSuccessSchema(
+                **user_updated_db.to_dict(
+                    include=["email", "username", "first_name", "last_name"]
+                )
             )
-        return ORJSONResponse(
-            data=EmailUpdateErrorSchema().model_dump(),
-            status=400,
-        )
+
+        raise user_errors.EmailUpdateFailed
+
+    def update_user(
+        self,
+        user_id: UUID,
+        user_update: "user_schemas.UserUpdateSchema",
+        profile_update: "user_schemas.ProfileUpdateSchema",
+    ):
+        if user_id:
+            user_db = self.user_repository.get_user_by_id(user_id=user_id)
+            user = self.user_repository.update_user(
+                user_db=user_db,
+                user_update=user_update,
+            )
+            if user:
+                self.event.publish(
+                    event_name="user_updated",
+                    event_data={
+                        "user_id": user_id,
+                        "profile_update": profile_update.model_dump(),
+                    },
+                )

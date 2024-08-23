@@ -3,18 +3,13 @@ from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 if TYPE_CHECKING:
-    from src.auth.schemas import UserCreateSchema
-    from src.users.schemas import (
-        EmailUpdateSchema,
-        SuperUserCreateSchema,
-        UserUpdateSchema,
-    )
+    from src.users import schemas as user_schemas
     from src.users.types import UserType
 
 
 class IUserRepository(ABC):
     @abstractmethod
-    def is_superuser(self) -> bool:
+    def is_superuser_exists(self) -> bool:
         pass
 
     @abstractmethod
@@ -41,22 +36,22 @@ class IUserRepository(ABC):
     @abstractmethod
     def create_user(
         self,
-        user_create: "UserCreateSchema",
-    ) -> bool:
+        user_create_schema: "user_schemas.UserCreateSchema",
+    ) -> Optional["UserType"]:
         pass
 
     @abstractmethod
     def create_superuser(
         self,
-        user_super_create: "SuperUserCreateSchema",
-    ) -> bool:
+        super_user_create_schema: "user_schemas.SuperUserCreateSchema",
+    ) -> Optional["UserType"]:
         pass
 
     @abstractmethod
     def update_user(
         self,
-        user_obj: "UserType",
-        user_update: "UserUpdateSchema",
+        user_db: "UserType",
+        user_update: "user_schemas.UserUpdateSchema",
     ):
         pass
 

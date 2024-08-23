@@ -1,11 +1,7 @@
 import importlib
-import inspect
 import logging
-import queue
 import threading
-import time
-from concurrent.futures import Future, ThreadPoolExecutor
-from typing import TYPE_CHECKING, Callable, Optional, Union
+from typing import TYPE_CHECKING, Optional
 
 from django.conf import settings
 
@@ -18,61 +14,109 @@ logger = logging.getLogger(__name__)
 
 
 class EventHandler(IEventHandler):
-    """
-    Class for handling events.
-
-    Attributes:
-        manager (EventManager): Event manager.
-
-    Methods:
-        pub(event_name: str, event_data: dict)
-        sub(subs: Union[list[str], str])
-        get()
-
-    Usage:
-        event_handler = EventHandler(event_manager)
-        event_handler.pub("test_event", {"key": "value"})
-        event_handler.sub("test_event")
-        event_handler.get()
-    """
-
     def __init__(
         self,
         manager: "IEventManager",
     ):
         self.manager = manager
-        self.executor = ThreadPoolExecutor()
 
-    @staticmethod
-    def start_handlers() -> None:
+    def start_handlers(self) -> None:
         if bool(settings.WORKING_HANDLERS or settings.WORKING_HANDLERS != []):
             for event_class in settings.WORKING_HANDLERS:
                 module_path, class_name, service_name, method_name = event_class.rsplit(
                     sep=".", maxsplit=3
                 )
-                cls = getattr(importlib.import_module(module_path), class_name)
-                method = getattr(cls.service, method_name)
-                if method.__name__.startswith("handle"):
-                    event_name = method.__name__.replace("handle_", "")
+                controller = getattr(importlib.import_module(module_path), class_name)
+                services_methods = [
+                    getattr(controller, x)
+                    for x in dir(controller)
+                    if "service" in x
+                    and hasattr(getattr(controller, x), method_name)
+                    and callable(getattr(getattr(controller, x), method_name))
+                ]
+                for service in services_methods:
+                    method = getattr(service, method_name)
+
+                    if method.__name__.startswith("handle"):
+                        event_name = method.__name__.replace("handle_", "")
+                        logger.info(
+                            "Starting [green]%s[/] for event: [yellow]%s[/] in service: [bold red blink]%s[/]",
+                            method.__name__,
+                            event_name,
+                            service.__class__.__name__,
+                            extra={"markup": True},
+                        )
+                        threading.Thread(target=method).start()
+
+    def start_subscribers(self) -> None:
+        if bool(settings.WORKING_SUBSCRIBERS or settings.WORKING_SUBSCRIBERS != []):
+            for subscriber in settings.WORKING_SUBSCRIBERS:
+                (
                     logger.info(
-                        "Starting %s for event: %s", method.__name__, event_name
-                    )
-                    threading.Thread(target=method).start()
+                        "Starting subscriber event: [yellow]%s[/]",
+                        subscriber,
+                        extra={"markup": True},
+                    ),
+                )
+                threading.Thread(target=self.subscribe, args=(subscriber,)).start()
+        else:
+            logger.info(
+                "start_subscribers: No subscribers found",
+                extra={"markup": True},
+            )
 
     def publish(self, event_name: str, event_data: str | dict) -> None:
-        logger.info("Publishing event: %s with data: %s", event_name, event_data)
-        threading.Thread(
-            target=self.manager.publish,
-            args=(event_name, event_data),
-        ).start()
+        self.manager.publish(event_name=event_name, event_data=event_data)
 
-    def subscribe(self, event_name: str) -> Optional[dict]:
+    def subscribe(
+        self,
+        event_name: str,
+    ) -> None:
         self.manager.subscribe(event_name=event_name)
-        while True:
-            time.sleep(1)
-            event_data = self.manager.receive_event(
+
+    def _process_event(
+        self,
+        event_name: str,
+        timeout: Optional[None | float] = None,
+    ) -> Optional[dict]:
+        try:
+            # Receive event data using the manager
+            event_data = self.manager.receive(
                 event_name=event_name,
+                timeout=timeout,
             )
-            if event_data:
-                logger.info("Received event: %s with data: %s", event_name, event_data)
+
+            # Check if the event data is valid and return it
+            if event_data and isinstance(event_data, dict):
                 return event_data
+            else:
+                logger.warning("Received invalid event data for event: %s", event_name)
+                return None
+        except Exception as e:
+            logger.error("Error processing event %s: %s", event_name, str(e))
+            return None
+
+    def receive(
+        self,
+        event_name: str,
+        timeout: Optional[None | float] = None,
+        with_subscription: bool = False,
+    ) -> Optional[dict]:
+        if with_subscription:
+            self.subscribe(event_name=event_name)
+
+        if not (self.manager.is_subscribed(event_name=event_name) or with_subscription):
+            logger.info("Event %s is not subscribed", event_name)
+            return None
+
+        if timeout is None:
+            return self._process_event(event_name=event_name)
+        else:
+            return self._process_event(event_name=event_name, timeout=timeout)
+
+    def unsubscribe(
+        self,
+        event_name: str,
+    ) -> None:
+        logger.info("Unsubscribing from event: %s", event_name)
+        self.manager.unsubscribe(event_name=event_name)

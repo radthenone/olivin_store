@@ -17,6 +17,7 @@ from src.data.interfaces import ICloudStorage
 from src.data.utils import (
     clean_name,
     get_content_type,
+    get_extension,
     get_file_io,
     get_file_size,
     path_file,
@@ -166,11 +167,13 @@ class MinioStorage(ICloudStorage, Storage):
         if not self.is_object_exist(full_object_key):
             if uploaded_file:
                 try:
+                    file_io = get_file_io(uploaded_file)
+                    file_size = file_io.getbuffer().nbytes
                     self.client.put_object(
                         bucket_name=self.bucket_name,
                         object_name=full_object_key,
-                        data=get_file_io(file=uploaded_file),
-                        length=uploaded_file.size,
+                        data=file_io,
+                        length=file_size,
                         content_type=uploaded_file.content_type,
                     )
                     return True
@@ -195,8 +198,12 @@ class MinioStorage(ICloudStorage, Storage):
             folder=folder,
             object_key=object_key,
         )
+        if not self.is_object_exist(full_object_key):
+            logger.info("File %s not found in %s.", full_object_key, self.bucket_name)
+            return None
         try:
             return self.client.presigned_get_object(self.bucket_name, full_object_key)
+
         except Exception as error:
             logger.error(error)
             return None
@@ -206,18 +213,22 @@ class MinioStorage(ICloudStorage, Storage):
         filename: str,
         folder: Optional[str] = None,
         object_key: Optional[ObjectType] = None,
+        content_type: Optional[str] = None,
     ) -> bool:
         full_object_key = self.get_object_key(
             filename=filename,
             folder=folder,
             object_key=object_key,
         )
+        ext = get_extension(content_type)
         try:
             self.client.remove_object(
                 bucket_name=self.bucket_name,
-                object_name=full_object_key,
+                object_name=full_object_key + ext,
             )
-            return True
+            if not self.is_object_exist(full_object_key):
+                logger.info(f"File {full_object_key} deleted from {self.bucket_name}.")
+                return True
         except APIException as error:
             logger.error(error)
             return False

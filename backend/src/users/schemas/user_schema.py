@@ -1,4 +1,6 @@
+from datetime import date
 from typing import Annotated, Optional
+from uuid import UUID
 
 from pydantic import (
     BaseModel,
@@ -18,11 +20,64 @@ from src.users.validations import (
 )
 
 
-class UserUpdateSchema(BaseModel):
+class UserCreateSchema(PasswordsMatchSchema):
     username: Annotated[str, BeforeValidator(validate_username)]
-    email: Annotated[str, BeforeValidator(validate_email)]
-    first_name: Optional[str]
-    last_name: Optional[str]
+    email: Annotated[str, BeforeValidator(validate_email)] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "required": ["password", "email", "rewrite_password", "username"],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "format": "password",
+                },
+                "rewrite_password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "format": "password",
+                },
+                "username": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 16,
+                },
+                "first_name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 16,
+                },
+                "last_name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 16,
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                },
+            },
+            "description": "User create schema",
+            "title": "User create schema",
+            "example": {
+                "password": "Password12345!",
+                "rewrite_password": "Password12345!",
+                "username": "username",
+                "first_name": "first_name",
+                "last_name": "last_name",
+            },
+        }
+    )
+
+
+class UserUpdateSchema(BaseModel):
+    username: Annotated[str, BeforeValidator(validate_username)] = None
+    email: Annotated[str, BeforeValidator(validate_email)] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -51,7 +106,7 @@ class UserUpdateSchema(BaseModel):
             "title": "User update schema",
             "example": {
                 "username": "new_username",
-                "email": "new@email.com",
+                "email": "new@new.com",
                 "first_name": "new_first_name",
                 "last_name": "new_last_name",
             },
@@ -205,6 +260,66 @@ class EmailUpdateSuccessSchema(BaseModel):
             "description": "Email update success schema",
             "title": "Email update success schema",
             "example": {
+                "email": "a@a.com",
+                "username": "username",
+                "first_name": "first_name",
+                "last_name": "last_name",
+            },
+        }
+    )
+
+
+class UserProfileSuccessSchema(BaseModel):
+    email: str
+    username: str
+    first_name: str
+    last_name: str
+    birth_date: date
+    phone: str
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "Email update success schema",
+            "title": "Email update success schema",
+            "example": {
+                "email": "a@a.com",
+                "username": "username",
+                "first_name": "first_name",
+                "last_name": "last_name",
+                "birth_date": "1990-01-01",
+                "phone": "+48510100100",
+            },
+        }
+    )
+
+
+class UserProfileErrorSchema(BaseModel):
+    message: str = "Error while updating profile"
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "Email update error schema",
+            "title": "Email update error schema",
+            "example": {
+                "message": "Error while updating profile",
+            },
+        }
+    )
+
+
+class UserSchema(BaseModel):
+    id: UUID
+    email: str
+    username: str
+    first_name: str
+    last_name: str
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "User get success schema",
+            "title": "User get success schema",
+            "example": {
+                "id": "123e4567-e89b-12d3-a456-426655440000",
                 "email": "a@a.com",
                 "username": "username",
                 "first_name": "first_name",

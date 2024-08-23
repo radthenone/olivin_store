@@ -4,25 +4,16 @@ import phonenumbers
 from ninja_extra.exceptions import APIException
 
 
-def validate_phone(phone: str) -> str:
-    """
-    Checks if the phone number is valid.
-    phone: like +33612345678
-    :param phone: str
-    :return: bool
-    """
-    if not phone:
+def validate_phone(country_code: str, number: str) -> str:
+    if not number:
         raise APIException(
             detail="Phone number is required",
             code=400,
         )
 
-    country_code = phone[:3]
-    number = phone[3:]
-
-    if country_code[0] != "+" or len(country_code) != 3:
+    if not country_code:
         raise APIException(
-            detail="Invalid country code",
+            detail="Country code required",
             code=400,
         )
 
@@ -31,6 +22,7 @@ def validate_phone(phone: str) -> str:
             detail="Phone number must be 9 digits long",
             code=400,
         )
+    phone = country_code + number
     parsed_number = phonenumbers.parse(phone, None)
     if not phonenumbers.is_valid_number(parsed_number):
         raise APIException(
@@ -40,11 +32,26 @@ def validate_phone(phone: str) -> str:
     return country_code + str(parsed_number.national_number)
 
 
-def validate_birth_date(birth_date: date) -> str:
+def validate_code(code: str) -> str:
+    if not code:
+        raise APIException(
+            detail="Code is required",
+            code=400,
+        )
+
+    if len(code) != 4:
+        raise APIException(
+            detail="Code must be 4 digits long",
+            code=400,
+        )
+    return code
+
+
+def validate_birth_date(birth_date: str) -> str:
     today_date = datetime.now().date()
 
     try:
-        birth_date = datetime.strptime(str(birth_date), "%Y-%m-%d").date()
+        birth_date = datetime.strptime(birth_date, "%Y-%m-%d").date()
     except APIException:
         raise APIException(
             detail="Invalid birth date format. Valid format is YYYY-MM-DD.",

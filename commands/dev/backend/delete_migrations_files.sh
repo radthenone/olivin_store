@@ -11,7 +11,7 @@ delete_migrations() {
     fi
 }
 
-find "$PWD" -type d -name 'migrations' | while read -r migrations_dir; do
+find "$PWD/backend/src" -type d -name 'migrations' | while read -r migrations_dir; do
     delete_migrations "$migrations_dir"
 done
 

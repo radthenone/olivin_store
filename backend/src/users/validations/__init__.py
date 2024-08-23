@@ -1,5 +1,6 @@
 from src.users.validations.profile_validation import (
     validate_birth_date,
+    validate_code,
     validate_phone,
 )
 from src.users.validations.user_validation import (
@@ -18,4 +19,5 @@ __all__ = [
     # Profile validations
     "validate_phone",
     "validate_birth_date",
+    "validate_code",
 ]

@@ -1,21 +1,21 @@
+import json
 import uuid
+from typing import Any, Optional
 
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from src.common.mixins import ModelToDictToJsonMixin
 
-class Profile(models.Model):
+
+class Profile(models.Model, ModelToDictToJsonMixin):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False,
     )
     birth_date = models.DateField(
-        null=True,
-        blank=True,
-    )
-    avatar = models.URLField(
         null=True,
         blank=True,
     )
@@ -26,7 +26,7 @@ class Profile(models.Model):
     )
     # relationships
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
+        to=settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="profile",
     )

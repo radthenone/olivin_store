@@ -1,4 +1,6 @@
+import json
 import uuid
+from typing import Any, Optional
 
 from django.db import models
 from django.utils import timezone

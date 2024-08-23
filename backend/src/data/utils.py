@@ -1,4 +1,5 @@
 import io
+import logging
 import mimetypes
 import pathlib
 import posixpath
@@ -7,7 +8,12 @@ from typing import BinaryIO, Optional, TypeVar, Union
 from uuid import UUID
 
 from django.conf import settings
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from ninja import UploadedFile
+from PIL import Image
+
+logger = logging.getLogger(__name__)
 
 ObjectType = TypeVar("ObjectType", bound=Union[UUID, str, int])
 
@@ -82,8 +88,50 @@ def get_content_type(file: UploadedFile) -> str:
     return guess_type(file.name)[0]
 
 
-def get_file_io(file: UploadedFile) -> BinaryIO:
-    file_io = io.BytesIO()
-    file_io.write(file.file.read())
+def get_file_io(file: UploadedFile) -> io.BytesIO:
+    file.file.seek(0)
+    data = file.file.read()
+    file_io = io.BytesIO(data)
     file_io.seek(0)
     return file_io
+
+
+def get_extension(content_type: str, custom_types: dict = None):
+    if custom_types is None:
+        custom_types = {
+            "image/webp": ".webp",
+        }
+
+    if content_type in custom_types:
+        return custom_types[content_type]
+
+    ext = mimetypes.guess_extension(content_type)
+
+    if ext is None:
+        ext = "." + content_type.split("/")[-1]
+
+    return ext
+
+
+def resize_image(uploaded_file: UploadedFile, size=(200, 200)) -> UploadedFile:
+    uploaded_file.file.seek(0)
+    original_data = uploaded_file.file.read()
+
+    with Image.open(io.BytesIO(original_data)) as image:
+        image.thumbnail(size, Image.Resampling.LANCZOS)
+
+        output = io.BytesIO()
+        image.save(output, format=image.format)
+        output_data = output.getvalue()
+        logger.info("Resized image size: %s", len(output_data))
+
+        content_file = ContentFile(output_data)
+
+        new_file = UploadedFile(
+            file=content_file,
+            name=uploaded_file.name,
+            content_type=uploaded_file.content_type,
+            size=len(output_data),
+        )
+
+    return new_file
