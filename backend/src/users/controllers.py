@@ -19,21 +19,9 @@ from src.data.handlers import AvatarFileHandler, CacheHandler, EventHandler
 from src.data.managers import EventManager
 from src.data.storages import RedisStorage
 from src.files.services import FileService
-from src.users import errors as user_errors
+from src.users import errors as users_errors
+from src.users import schemas as users_schemas
 from src.users.repositories import ProfileRepository, UserRepository
-from src.users.schemas import (
-    CreatePhoneSchema,
-    EmailUpdateErrorSchema,
-    EmailUpdateSchema,
-    EmailUpdateSuccessSchema,
-    ProfileUpdateSchema,
-    RegisterPhoneSchema,
-    UserProfileErrorSchema,
-    UserProfileSuccessSchema,
-    UserProfileUpdateSchema,
-    UserSchema,
-    UserUpdateSchema,
-)
 from src.users.services import ProfileService, UserService
 
 logger = logging.getLogger(__name__)
@@ -51,7 +39,10 @@ class UsersController:
     avatar_handler = AvatarFileHandler(storage=get_storage())
     cache_handler = CacheHandler(pool_storage=RedisStorage())
     event_handler = EventHandler(manager=EventManager())
-    phone_handler = get_phone_handler()
+    phone_handler = get_phone_handler(
+        cache=cache_handler,
+        repository=profile_repository,
+    )
 
     file_service = FileService(
         avatar_handler=avatar_handler,
@@ -96,7 +87,7 @@ class UsersController:
                 )
 
         except APIException:
-            raise user_errors.UserNotFound
+            raise users_errors.UserNotFound
 
     @route.post(
         path="/update/email",
@@ -106,7 +97,7 @@ class UsersController:
     def change_email(
         self,
         request: HttpRequest,
-        email_update_schema: EmailUpdateSchema,
+        email_update_schema: users_schemas.EmailUpdateSchema,
     ):
         return ORJSONResponse(
             data=self.user_service.change_email(
