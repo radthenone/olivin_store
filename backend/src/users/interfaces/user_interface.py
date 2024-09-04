@@ -9,6 +9,13 @@ if TYPE_CHECKING:
 
 class IUserRepository(ABC):
     @abstractmethod
+    def is_user_exists(
+        self,
+        user_id: UUID,
+    ) -> bool:
+        pass
+
+    @abstractmethod
     def is_superuser_exists(self) -> bool:
         pass
 
@@ -52,7 +59,7 @@ class IUserRepository(ABC):
         self,
         user_db: "UserType",
         user_update: "user_schemas.UserUpdateSchema",
-    ):
+    ) -> Optional["UserType"]:
         pass
 
     @abstractmethod

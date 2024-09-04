@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 from django.contrib.auth import get_user_model
+from django.db import transaction
 
-from src.core.celery import celery
 from src.users.interfaces import IUserRepository
 
 if TYPE_CHECKING:
@@ -17,6 +17,12 @@ User = get_user_model()
 
 
 class UserRepository(IUserRepository):
+    def is_user_exists(
+        self,
+        user_id: UUID,
+    ) -> bool:
+        return User.objects.filter(user_id=user_id).exists()
+
     def is_superuser_exists(self) -> bool:
         return User.objects.filter(is_superuser=True).exists()
 
@@ -52,13 +58,7 @@ class UserRepository(IUserRepository):
         user_create_schema: "user_schemas.UserCreateSchema",
     ) -> Optional["UserType"]:
         try:
-            user_db = User(
-                email=getattr(user_create_schema, "email", None),
-                password=getattr(user_create_schema, "password", None),
-                username=getattr(user_create_schema, "username", None),
-                first_name=getattr(user_create_schema, "first_name", None),
-                last_name=getattr(user_create_schema, "last_name", None),
-            )
+            user_db = User(**user_create_schema.model_dump(exclude_none=True))
 
             setattr(user_db, "is_staff", False)
             setattr(user_db, "is_superuser", False)
@@ -81,17 +81,12 @@ class UserRepository(IUserRepository):
         super_user_create_schema: "user_schemas.SuperUserCreateSchema",
     ) -> Optional["UserType"]:
         try:
-            user_db = User(
-                email=super_user_create_schema.email,
-                password=super_user_create_schema.password,
-                is_staff=super_user_create_schema.is_staff,
-                is_superuser=super_user_create_schema.is_superuser,
-            )
+            user_db = User(**super_user_create_schema.model_dump(exclude_none=True))
             user_db.set_password(super_user_create_schema.password)
             user_db.save()
             logger.info(
                 "[green]Superuser created successfully with email [blue]%s[/][/]",
-                super_user_create_schema.email,
+                user_db.email,
                 extra={"markup": True},
             )
             return user_db
@@ -105,22 +100,48 @@ class UserRepository(IUserRepository):
 
     def update_user(
         self,
-        user_db: "UserType",
+        user_id: UUID,
         user_update: "user_schemas.UserUpdateSchema",
-    ) -> "UserType":
-        for field, value in user_update.model_dump(exclude_unset=True).items():
-            setattr(user_db, field, value)
-        user_db.save()
-        return user_db
+    ) -> Optional["UserType"]:
+        try:
+            with transaction.atomic():
+                user_db = self.get_user_by_id(user_id=user_id)
+                for field, value in user_update.model_dump(exclude_unset=True).items():
+                    setattr(user_db, field, value)
+                user_db.save()
+                logger.info(
+                    "User updated successfully with email [blue]%s[/]",
+                    user_db.email,
+                    extra={"markup": True},
+                )
+
+                return user_db
+        except Exception as error:
+            logger.exception(
+                "Error while updating user with error: [red]%s[/]",
+                error,
+                extra={"markup": True},
+            )
+            return None
 
     def delete_user(
         self,
         user_id: UUID,
     ) -> bool:
         try:
-            User.objects.get(id=user_id).delete()
-            logger.info("User deleted successfully with id %s", user_id)
+            user = User.objects.get(id=user_id)
+            deleted_email = user.email
+            user.delete()
+            logger.info(
+                "User deleted successfully with email [blue]%s[/]",
+                deleted_email,
+                extra={"markup": True},
+            )
+            return True
         except Exception as error:
-            logger.error("Error while deleting user %s", error)
+            logger.error(
+                "Error while deleting user error: [red]%s[/]",
+                error,
+                extra={"markup": True},
+            )
             return False
-        return True

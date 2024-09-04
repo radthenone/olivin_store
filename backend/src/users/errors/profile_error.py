@@ -10,3 +10,8 @@ class ProfileDoesNotExist(APIException):
 class ProfileNotFound(APIException):
     default_detail = "Profile not found"
     status_code = status.HTTP_404_NOT_FOUND
+
+
+class PhoneAlreadyExists(APIException):
+    default_detail = "Phone already exists"
+    status_code = status.HTTP_400_BAD_REQUEST

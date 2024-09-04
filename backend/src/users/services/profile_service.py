@@ -1,25 +1,20 @@
-import json
-import time
-import uuid
 from typing import TYPE_CHECKING, Optional, cast
 from uuid import UUID
 
-from django.forms import model_to_dict
 from ninja_extra.exceptions import APIException
 
 from src.common.responses import ORJSONResponse
 from src.common.schemas import MessageSchema
 from src.users import errors as profile_errors
 from src.users import schemas as profile_schemas
-from src.users.errors import ProfileDoesNotExist, ProfileNotFound
 from src.users.schemas import (
-    CreatePhoneSchema,
+    PhoneCodeSchema,
+    PhoneNumberSchema,
     ProfileCreateSchema,
     ProfileUpdateSchema,
-    RegisterPhoneSchema,
 )
 from src.users.tasks import create_profile_task, delete_profile_task
-from src.users.utils import generate_code, get_task_result
+from src.users.utils import generate_code
 
 if TYPE_CHECKING:
     from src.data.handlers import AvatarFileHandler  # unused import
@@ -88,6 +83,14 @@ class ProfileService:
             extra={"markup": True},
         )
         return profile_id
+
+    @staticmethod
+    def update_profile(
+        user_id: UUID,
+        profile_update_schema: "ProfileUpdateSchema",
+        timeout: Optional[int] = None,
+    ) -> Optional[str]:
+        pass
 
     @staticmethod
     def delete_profile(
@@ -192,12 +195,12 @@ class ProfileService:
 
     def register_phone(
         self,
-        phone: "RegisterPhoneSchema",
+        phone: "PhoneNumberSchema",
         user_id: UUID,
     ) -> Optional["ORJSONResponse"]:
-        if self.profile_repository.exists_profile_phone(
+        if self.profile_repository.exists_phone(
             user_id=user_id,
-            number=phone.number,
+            phone_number=phone.number,
         ):
             return ORJSONResponse(
                 data=MessageSchema(message="Phone number already exists").model_dump(),
@@ -226,7 +229,7 @@ class ProfileService:
 
     def create_phone(
         self,
-        phone: "CreatePhoneSchema",
+        phone: "PhoneCodeSchema",
         user_id: UUID,
     ) -> Optional["ORJSONResponse"]:
         if self.phone.verify_number_code(
@@ -257,3 +260,6 @@ class ProfileService:
                 ]
             )
         )
+
+    def delete_phone(self):
+        pass

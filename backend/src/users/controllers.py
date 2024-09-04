@@ -1,7 +1,6 @@
 import logging
 from typing import Optional
 from uuid import UUID
-from xml.etree.ElementInclude import include
 
 from django.http import HttpRequest, JsonResponse
 from ninja import UploadedFile
@@ -12,9 +11,8 @@ from ninja_extra.permissions.common import IsAuthenticated
 
 from src.common.responses import ORJSONResponse
 from src.common.schemas import MessageSchema
-from src.core.handler import get_phone_handler
+from src.core.config import get_phone_handler, get_storage
 from src.core.interceptors import AuthBearer
-from src.core.storage import get_storage
 from src.data.handlers import AvatarFileHandler, CacheHandler, EventHandler
 from src.data.managers import EventManager
 from src.data.storages import RedisStorage

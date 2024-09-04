@@ -4,15 +4,19 @@ from uuid import UUID
 
 if TYPE_CHECKING:
     from src.users.schemas import (
-        CreatePhoneSchema,
+        PhoneCodeSchema,
+        PhoneNumberSchema,
         ProfileCreateSchema,
         ProfileUpdateSchema,
-        RegisterPhoneSchema,
     )
     from src.users.types import ProfileType, UserType
 
 
 class IProfileRepository(ABC):
+    @abstractmethod
+    def is_profile_exists(self, user_id: UUID) -> bool:
+        pass
+
     @abstractmethod
     def get_profile_by_user_id(
         self,
@@ -40,7 +44,6 @@ class IProfileRepository(ABC):
         self,
         user_id: UUID,
         profile_update: "ProfileUpdateSchema",
-        avatar: Optional[str] = None,
     ) -> bool:
         pass
 
@@ -52,17 +55,39 @@ class IProfileRepository(ABC):
         pass
 
     @abstractmethod
-    def create_profile_phone(
+    def is_phone_exists(
         self,
-        phone: "RegisterPhoneSchema",
         user_id: UUID,
+        phone_number: str,
     ) -> bool:
         pass
 
     @abstractmethod
-    def exists_profile_phone(
+    def get_phone(
         self,
         user_id: UUID,
-        number: str,
+    ) -> Optional[str]:
+        pass
+
+    @abstractmethod
+    def create_phone(
+        self,
+        user_id: UUID,
+        phone_number: str,
+    ) -> bool:
+        pass
+
+    @abstractmethod
+    def update_phone(
+        self,
+        user_id: UUID,
+        phone_number: str,
+    ) -> bool:
+        pass
+
+    @abstractmethod
+    def delete_phone(
+        self,
+        user_id: UUID,
     ) -> bool:
         pass

@@ -176,7 +176,7 @@ def parse_arguments():
 
 
 def run_auto():
-    from src.core.storage import get_storage
+    from src.core.config import get_storage
     from src.data.handlers import EventHandler, ImageFileHandler, TemplateHandler
     from src.data.managers import EventManager
     from src.users.repositories import UserRepository
@@ -215,7 +215,6 @@ def run_auto():
     template_handler.upload_template("register-mail.html")
 
     event_handler = EventHandler(manager=EventManager())
-    # event_handler.start_subscribers()
     event_handler.start_handlers()
 
 

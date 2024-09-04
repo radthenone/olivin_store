@@ -8,9 +8,8 @@ from src.auth.throttles import RegisterMailThrottle, RegisterThrottle
 from src.common import permissions as common_permissions
 from src.common import schemas as common_schemas
 from src.common.responses import ORJSONResponse
-from src.core.handler import get_phone_handler
+from src.core.config import get_phone_handler, get_storage
 from src.core.interceptors import AuthBearer
-from src.core.storage import get_storage
 from src.data.handlers import (
     AvatarFileHandler,
     CacheHandler,

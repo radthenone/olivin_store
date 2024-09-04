@@ -12,6 +12,6 @@ echo "Continuing with the execution."
 
 echo "========== DJANGO RUNSERVER =========="
 
-python app.py
+python app.py --wsgi
 
 exec "$@"

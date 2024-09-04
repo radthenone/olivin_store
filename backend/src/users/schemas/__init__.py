@@ -1,9 +1,9 @@
 from src.users.schemas.profile_schema import (
-    CreatePhoneSchema,
+    PhoneCodeSchema,
+    PhoneNumberSchema,
     ProfileCreateSchema,
     ProfileSchema,
     ProfileUpdateSchema,
-    RegisterPhoneSchema,
 )
 from src.users.schemas.schema import UserProfileUpdateSchema
 from src.users.schemas.user_schema import (
@@ -38,6 +38,6 @@ __all__ = [
     "ProfileSchema",
     "ProfileCreateSchema",
     "ProfileUpdateSchema",
-    "RegisterPhoneSchema",
-    "CreatePhoneSchema",
+    "PhoneNumberSchema",
+    "PhoneCodeSchema",
 ]

@@ -13,7 +13,7 @@ from src.data.clients import VonageClient
 from src.data.handlers.redis_handler import CacheHandler
 from src.data.interfaces import ICacheHandler, IClient, IPhoneHandler
 from src.data.storages import RedisStorage
-from src.users.schemas import RegisterPhoneSchema
+from src.users.schemas import PhoneNumberSchema
 
 if TYPE_CHECKING:
     from src.users.interfaces import IProfileRepository
@@ -49,10 +49,25 @@ class VonagePhoneHandler(IPhoneHandler):
             }
         )
         if response["messages"][0]["status"] == "0":
-            logger.info("send_sms: %s", response["messages"][0]["message_id"])
-            return True
+            if response["messages"][0]["message_id"]:
+                logger.info(
+                    """
+                    Send sms with title: [blue]%s[/], 
+                    message: [blue]%s[/] 
+                    to number: [blue]%s[/]
+                    """,
+                    title,
+                    message,
+                    number,
+                    extra={"markup": True},
+                )
+                return True
         else:
-            logger.info("send_sms: %s", response["messages"][0]["error_text"])
+            logger.error(
+                "Sms not sent with error: [red]%s[/]",
+                response["messages"][0]["error_text"],
+                extra={"markup": True},
+            )
             return False
 
     def verify_number(
@@ -65,19 +80,27 @@ class VonagePhoneHandler(IPhoneHandler):
             number=number,
             brand=brand,
         )
-        expires = timedelta(minutes=5)
         if response["status"] == "0":
-            logger.info("verify_number: %s", response["request_id"])
             request_id = response["request_id"]
             if request_id:
+                logger.info(
+                    "Created verify token : [blue]%s[/] for number: [blue]%s[/]",
+                    request_id,
+                    number,
+                    extra={"markup": True},
+                )
                 self.cache.set_value(
                     key=request_id,
                     value=number,
-                    expire=expires,
+                    expire=timedelta(minutes=5),
                 )
-            return response["request_id"]
+                return request_id
         else:
-            logger.info("verify_number: %s", response["error_text"])
+            logger.error(
+                "Verify number error: [red]%s[/]",
+                response["error_text"],
+                extra={"markup": True},
+            )
             return None
 
     def verify_number_code(
@@ -86,23 +109,29 @@ class VonagePhoneHandler(IPhoneHandler):
         code: str,
         **kwargs,
     ) -> bool:
-        if request_id and code:
-            response = self.verify.check(
-                request_id=request_id,
-                code=code,
-            )
-            if response["status"] == "0":
-                number = self.cache.get_value(key=request_id)
-                user_id = kwargs.get("user_id")
-                if number and user_id:
-                    phone = RegisterPhoneSchema(number=number)
-                    self.repository.create_profile_phone(phone=phone, user_id=user_id)
-                logger.info("verify_number_code: %s", response["request_id"])
+        response = self.verify.check(
+            request_id=request_id,
+            code=code,
+        )
+        if response["status"] == "0":
+            number = self.cache.get_value(key=request_id)
+            event_id = response["event_id"]
+            if number and event_id:
+                logger.info(
+                    "Number code verified: [blue]%s[/] for number: [blue]%s[/] with event_id: [blue]%s[/]",
+                    code,
+                    number,
+                    event_id,
+                    extra={"markup": True},
+                )
                 return True
-            else:
-                logger.info("verify_number_code: %s", response["error_text"])
-                return False
-        return False
+        else:
+            logger.error(
+                "Verify number code error: [red]%s[/]",
+                response["error_text"],
+                extra={"markup": True},
+            )
+            return False
 
 
 class FakePhoneHandler(IPhoneHandler):
@@ -116,9 +145,8 @@ class FakePhoneHandler(IPhoneHandler):
         self.repository = repository
         self.client = client
 
-    def _get_sms(self, number: str, user_id: Optional[UUID]) -> Optional[dict]:
-        sms_data = self.cache.get_value(key=f"{str(user_id)}_{number}")
-        logger.info("get_sms: %s", sms_data)
+    def _get_sms(self, number: str) -> Optional[dict]:
+        sms_data = self.cache.get_value(key=f"fake_sms_{number}")
         if sms_data:
             return sms_data
         return None
@@ -135,16 +163,30 @@ class FakePhoneHandler(IPhoneHandler):
             "to": number,
             "text": message,
         }
-        user_id = kwargs.get("user_id")
         self.cache.set_value(
-            key=f"{str(user_id)}_{number}",
+            key=f"fake_sms_{number}",
             value=data,
             expire=timedelta(minutes=5),
         )
-        if self._get_sms(number=number, user_id=user_id):
-            logger.info("send_sms: %s", number)
+        sms_data = self._get_sms(number=number)
+        if sms_data:
+            logger.info(
+                """
+                Send sms with title: [blue]%s[/], 
+                message: [blue]%s[/] 
+                to number: [blue]%s[/]
+                """,
+                title,
+                message,
+                number,
+                extra={"markup": True},
+            )
             return True
-        logger.info("not send_sms: %s", number)
+        logger.info(
+            "Sms not sent to number [blue]%s[/]",
+            number,
+            extra={"markup": True},
+        )
         return False
 
     def verify_number(
@@ -153,14 +195,18 @@ class FakePhoneHandler(IPhoneHandler):
         brand: str = "Olivin Store",
         **kwargs,
     ) -> Optional[str]:
-        expires = timedelta(minutes=5)
         request_id = create_jwt_token(
             data={
                 "number": number,
             },
-            expires_delta=expires,
+            expires_delta=timedelta(minutes=5),
         )
-        logger.info("verify_number: %s", request_id)
+        logger.info(
+            "Created verify token : [blue]%s[/] for number: [blue]%s[/]",
+            request_id,
+            number,
+            extra={"markup": True},
+        )
         return request_id
 
     def verify_number_code(
@@ -174,9 +220,17 @@ class FakePhoneHandler(IPhoneHandler):
             raise APIException("Invalid verification code", code=400)
         token_decoded = decode_jwt_token(token=request_id)
         number = token_decoded["number"]
-        user_id = kwargs.get("user_id")
-        if number and user_id:
-            phone = RegisterPhoneSchema(number=number)
-            self.repository.create_profile_phone(phone=phone, user_id=user_id)
+        if number:
+            logger.info(
+                "Number code verified: [blue]%s[/] for number: [blue]%s[/]",
+                code,
+                number,
+                extra={"markup": True},
+            )
             return True
+        logger.error(
+            "Verify number code error: [red]%s[/]",
+            "Invalid verification code",
+            extra={"markup": True},
+        )
         return False

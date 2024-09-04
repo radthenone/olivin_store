@@ -1,8 +1,9 @@
-from src.users.errors.profile_exception import (
+from src.users.errors.profile_error import (
     ProfileDoesNotExist,
     ProfileNotFound,
+    PhoneAlreadyExists,
 )
-from src.users.errors.user_exception import (
+from src.users.errors.user_error import (
     EmailAlreadyExists,
     EmailAlreadyInUse,
     EmailDoesNotExist,
@@ -32,4 +33,5 @@ __all__ = [
     # profile
     "ProfileDoesNotExist",
     "ProfileNotFound",
+    "PhoneAlreadyExists",
 ]

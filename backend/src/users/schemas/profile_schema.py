@@ -12,23 +12,23 @@ from pydantic import (
 )
 from pydantic.fields import Field
 
-from src.users.enums import CountryEnum
+from src.users.enums import CountryCodeEnum
 from src.users.validations import validate_birth_date, validate_code, validate_phone
 
 
-class RegisterPhoneSchema(BaseModel):
-    country: CountryEnum
+class PhoneNumberSchema(BaseModel):
+    country_code: CountryCodeEnum
     number: str = Field(..., min_length=9, max_length=9)
 
     @model_serializer
     def serialize_model(self):
         return {
-            "phone": f"{self.country.name}{self.number}",
+            "phone_number": f"{self.country_code.value}{self.number}",
         }
 
     @model_validator(mode="after")
     def validate_phone(self):
-        if validate_phone(country_code=self.country.name, number=self.number):
+        if validate_phone(country_code=self.country_code.value, number=self.number):
             return self
 
     model_config = ConfigDict(
@@ -36,14 +36,14 @@ class RegisterPhoneSchema(BaseModel):
             "description": "Profile creation phone schema",
             "title": "RegisterPhoneSchema",
             "example": {
-                "country": "POLAND",
+                "country_code": "+48",
                 "number": "510100100",
             },
         }
     )
 
 
-class CreatePhoneSchema(BaseModel):
+class PhoneCodeSchema(BaseModel):
     token: str
     code: Annotated[str, BeforeValidator(validate_code)]
 
@@ -99,6 +99,22 @@ class ProfileSchema(BaseModel):
             "example": {
                 "birth_date": "1990-01-01",
                 "phone": "+48510100100",
+            },
+        }
+    )
+
+
+class SendCodeSchema(BaseModel):
+    code: str
+    token: str
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "Send code schema",
+            "title": "SendCodeSchema",
+            "example": {
+                "code": "1234",
+                "token": "token",
             },
         }
     )

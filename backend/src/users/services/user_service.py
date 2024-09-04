@@ -138,13 +138,14 @@ class UserService:
 
         raise user_errors.EmailUpdateFailed
 
+    # TODO update_user to create
     def update_user(
         self,
         user_id: UUID,
         user_update: "user_schemas.UserUpdateSchema",
         profile_update: "user_schemas.ProfileUpdateSchema",
     ):
-        if user_id:
+        try:
             user_db = self.user_repository.get_user_by_id(user_id=user_id)
             user = self.user_repository.update_user(
                 user_db=user_db,
@@ -158,3 +159,6 @@ class UserService:
                         "profile_update": profile_update.model_dump(),
                     },
                 )
+
+        except APIException:
+            raise user_errors.UserUpdateFailed

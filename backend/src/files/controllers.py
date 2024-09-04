@@ -3,8 +3,8 @@ from ninja import UploadedFile
 from ninja_extra import api_controller, permissions, route
 
 from src.common.responses import ORJSONResponse
+from src.core.config import get_storage
 from src.core.interceptors import AuthBearer
-from src.core.storage import get_storage
 from src.data.handlers import (
     AvatarFileHandler,
 )
