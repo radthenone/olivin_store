@@ -12,6 +12,11 @@ class UserCreateFailed(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
+class UserUpdateFailed(APIException):
+    default_detail = "User update failed"
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
 class SuperUserCreateFailed(APIException):
     default_detail = "Super user create failed"
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

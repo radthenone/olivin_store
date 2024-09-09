@@ -124,7 +124,7 @@ class UserService:
             raise user_errors.WrongOldEmail
 
         user_updated_db = self.user_repository.update_user(
-            user_db=user_db,
+            user_id=user_id,
             user_update=user_schemas.UserUpdateSchema(
                 email=email_update_schema.email,
             ),
@@ -138,7 +138,6 @@ class UserService:
 
         raise user_errors.EmailUpdateFailed
 
-    # TODO update_user to create
     def update_user(
         self,
         user_id: UUID,
@@ -146,9 +145,8 @@ class UserService:
         profile_update: "user_schemas.ProfileUpdateSchema",
     ):
         try:
-            user_db = self.user_repository.get_user_by_id(user_id=user_id)
             user = self.user_repository.update_user(
-                user_db=user_db,
+                user_id=user_id,
                 user_update=user_update,
             )
             if user:

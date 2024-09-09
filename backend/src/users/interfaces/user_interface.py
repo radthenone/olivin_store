@@ -57,7 +57,7 @@ class IUserRepository(ABC):
     @abstractmethod
     def update_user(
         self,
-        user_db: "UserType",
+        user_id: UUID,
         user_update: "user_schemas.UserUpdateSchema",
     ) -> Optional["UserType"]:
         pass

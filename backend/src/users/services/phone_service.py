@@ -95,7 +95,10 @@ class PhoneService:
 
         return False
 
-    def get(self, user_id: UUID) -> Optional[str]:
+    def get(
+        self,
+        user_id: UUID,
+    ) -> Optional[str]:
         return self.profile_repository.get_phone(user_id=user_id)
 
     def create(
